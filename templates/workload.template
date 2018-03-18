@@ -1,0 +1,402 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Deploy a Security Gateway Auto Scaling Group, an external ALB, and optinally a Smart Managemnt Server and a server Auto Scaling Group
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+    - Label:
+        default: General Settings
+      Parameters:
+      - VPC
+      - ServicePort
+      - AdminEmail
+      - Key
+      - ManagementDeploy
+      - ServersDeploy
+    - Label:
+        default: Check Point Gateway Auto Scaling Group Configuration
+      Parameters:
+      - GatewaysSubnets
+      - GatewaysInstanceType
+      - GatewaysMinSize
+      - GatewaysMaxSize
+      - GatewaysLicense
+      - GatewaysPasswordHash
+      - GatewaysSIC
+    - Label:
+        default: Check Point Smart Management Server Configuration (ignored if you choose not to deploy a Smart Management Server)
+      Parameters:
+      - ManagementInstanceType
+      - ManagementPasswordHash
+      - GatewaysPolicy
+      - GatewaysBlades
+    - Label:
+        default: Workload Servers Auto Scaling Group Configuration (ignored if you choose not to deploy servers)
+      Parameters:
+      - ServersSubnets
+      - ServersInstanceType
+      - ServersAMI
+    - Label:
+        default: AWS Quick Start Configuration
+      Parameters:
+      - QSS3BucketName
+      - QSS3KeyPrefix
+    ParameterLabels:
+      VPC:
+        default: VPC
+      ServicePort:
+        default: Service Port
+      AdminEmail:
+        default: Email address
+      Key:
+        default: Key name
+      ManagementDeploy:
+        default: Deploy Smart Management
+      ServersDeploy:
+        default: Deploy Servers
+      GatewaysSubnets:
+        default: Subnets
+      GatewaysInstanceType:
+        default: Instance type
+      GatewaysMinSize:
+        default: Minimum group size
+      GatewaysMaxSize:
+        default: Maximum group size
+      GatewaysLicense: 
+        default: License
+      GatewaysPasswordHash:
+        default: Password hash
+      GatewaysSIC:
+        default: SIC key
+      ManagementInstanceType:
+        default: Instance type
+      ManagementPasswordHash:
+        default: Password hash
+      GatewaysPolicy:
+        default: Security Policy
+      GatewaysBlades:
+        default: Default Blades
+      ServersSubnets:
+        default: Subnet IDs
+      ServersInstanceType:
+        default: Instance Type
+      ServersAMI:
+        default: Amazon Image ID
+      QSS3BucketName:
+        default: Quick Start S3 Bucket Name
+      QSS3KeyPrefix:
+        default: Quick Start S3 Key Prefix
+Parameters:
+  VPC:
+    Type: AWS::EC2::VPC::Id
+  ServicePort:
+    Description: The external Application Load Balancer listens to this port
+    Type: Number
+    Default: 80
+    MinValue: 1
+  AdminEmail:
+    Description: Notifications about scaling events will be sent to this email address (optional)
+    Type: String
+    Default: ''
+    AllowedPattern: "(|([a-zA-Z0-9_\\-\\.]+)@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.)|(([a-zA-Z0-9\\-]+\\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\\]?))"
+    ConstraintDescription: must be a valid email address
+  Key:
+    Description: The EC2 Key Pair to allow SSH access to the instances created by this stack
+    Type: AWS::EC2::KeyPair::KeyName
+  ManagementDeploy:
+    Description: Select 'No' to use an existing Smart Management Server or to deploy one later
+    Type: String
+    Default: 'Yes'
+    AllowedValues:
+    - 'Yes'
+    - 'No'
+  ServersDeploy:
+    Description: Select 'Yes' to deploy webservers and an internal Load Balancer
+    Type: String
+    Default: 'No'
+    AllowedValues:
+    - 'Yes'
+    - 'No'
+  GatewaysSubnets:
+    Description: Select at least 2 public subnets in the VPC. If you choose to deploy a Smart Management Server it will be deployed in the first subnet.
+    Type: List<AWS::EC2::Subnet::Id>
+    MinLength: 1
+  GatewaysInstanceType:
+    Type: String
+    Default: c4.xlarge
+    AllowedValues:
+    - c4.large
+    - c4.xlarge
+    - c4.2xlarge
+    - c4.4xlarge
+    - c4.8xlarge
+    ConstraintDescription: must be a valid EC2 instance type
+  GatewaysMinSize:
+    Default: 2
+    Type: Number
+    MinValue: 1
+  GatewaysMaxSize:
+    Default: 10
+    Type: Number
+    MinValue: 1
+  GatewaysLicense:
+    Type: String
+    Default: R80.10-BYOL
+    AllowedValues:
+    - R80.10-BYOL
+    - R80.10-PAYG-NGTP
+    - R80.10-PAYG-NGTX
+  GatewaysPasswordHash:
+    Description: Admin user's password hash (use command \"openssl passwd -1 PASSWORD\" to get the PASSWORD's hash) (optional)
+    Type: String
+    Default: ''
+    AllowedPattern: "[\\$\\./a-zA-Z0-9]*"  
+    NoEcho: true
+  GatewaysSIC:
+    Description: Secure Internal Communication activation key
+    NoEcho: true
+    MinLength: 8
+    Type: String
+    AllowedPattern: "[a-zA-Z0-9]*"
+    ConstraintDescription: Secure Internal Communication activation key should contain only alpha numeric characters and be at least 8 characters long
+  ManagementInstanceType:
+    Type: String
+    Default: m4.xlarge
+    AllowedValues:
+    - m4.large
+    - m4.xlarge
+    - m4.2xlarge
+    - m4.4xlarge
+    - m4.10xlarge
+    - m4.16xlarge
+    ConstraintDescription: must be a valid EC2 instance type
+  ManagementPasswordHash:
+    Description: Admin user's password hash (use command \"openssl passwd -1 PASSWORD\" to get the PASSWORD's hash) (optional)
+    Type: String
+    Default: ''
+    AllowedPattern: "[\\$\\./a-zA-Z0-9]*"
+    NoEcho: true
+  GatewaysPolicy:
+    Description: The name of the Security Policy package to be installed on the Auto Scaling group gateways
+    Type: String
+    Default: Standard
+    MinLength: 1
+  GatewaysBlades:
+    Description: Turn on/off the Intrusion Prevention System, Application Control, Anti-Virus and Anti-Bot Blades (additional Blades can be manually turned on later)
+    Type: String
+    AllowedValues:
+    - 'On'
+    - 'Off'
+    Default: 'On'
+  ServersSubnets:
+    Description: Provide at least 2 private subnet IDs in the chosen VPC, separated by commas (e.g. subnet-0d72417c,subnet-1f61306f,subnet-1061d06f)
+    Type: String
+    AllowedPattern: "^((subnet-(([0-9a-f]{8})|([0-9a-f]{17})),)*(subnet-(([0-9a-f]{8})|([0-9a-f]{17})))+)$|^$"
+    ConstraintDescription: subnet IDs must be in the form subnet-xxxxxxxx or subnet-xxxxxxxxxxxxxxxxx, separated by commas without spaces
+  ServersInstanceType:
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+    - t2.nano
+    - t2.micro
+    - t2.small
+    - t2.medium
+    - t2.large
+    - t2.xlarge
+    - t2.2xlarge
+    ConstraintDescription: must be a valid EC2 instance type.
+  ServersAMI:
+    Type: String
+    Description: The Amazon Machine Image ID used to deploy the servers (e.g. ami-0dc7dc63)
+    AllowedPattern: "^(ami-(([0-9a-f]{8})|([0-9a-f]{17})))?$"
+    ConstraintDescription: Amazon Machine Image ID must be in the form ami-xxxxxxxx or ami-xxxxxxxxxxxxxxxxx
+  QSS3BucketName:
+    AllowedPattern: "^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$"
+    ConstraintDescription: Quick Start bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).
+    Default: michaelshv-bucket
+    Description: S3 bucket name for the Quick Start assets. Quick Start bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).
+    Type: String
+  QSS3KeyPrefix:
+    AllowedPattern: "^[0-9a-zA-Z-]+(/[0-9a-zA-Z-]+)*$"
+    ConstraintDescription: Quick Start key prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/). It cannot start or end with forward slash (/) because they are automatically appended.
+    Default: quickstart
+    Description: S3 key prefix for the Quick Start assets. Quick Start key prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/). It cannot start or end with forward slash (/) because they are automatically appended.
+    Type: String
+Conditions:
+  EnableBlades: !Equals [!Ref GatewaysBlades, 'On']
+  DeployManagement: !Equals [!Ref ManagementDeploy, 'Yes']
+  DeployServers: !Equals [!Ref ServersDeploy, 'Yes']
+Resources:
+  ManagementStack:
+    Type: AWS::CloudFormation::Stack
+    Condition: DeployManagement
+    Properties:
+      TemplateURL: !Sub https://s3-ap-southeast-2.amazonaws.com/${QSS3BucketName}/${QSS3KeyPrefix}/templates/management.template
+      Parameters:
+        VPC: !Ref VPC
+        Subnet: !Select
+        - 0
+        - !Ref GatewaysSubnets
+        Version: R80.10-BYOL
+        InstanceType: !Ref ManagementInstanceType
+        Name: 'CHKP-QuickStart-Management'
+        KeyName: !Ref Key
+        PasswordHash: !Ref ManagementPasswordHash
+        BootstrapScript: !Join
+        - ','
+        - - "sed -i '/template_name/c\template_name: quickstart-management' /etc/cloud-version"
+          - !Join
+            - ' '
+            - - autoprov-cfg -f init AWS -mn
+              - CHKP-QuickStart-Management
+              - -tn
+              - CHKP-QuickStart-Template
+              - -cn
+              - CHKP-QuickStart-Controller
+              - -po
+              - !Ref GatewaysPolicy
+              - -otp
+              - !Ref GatewaysSIC
+              - -r
+              - !Ref AWS::Region
+              - -ver
+              - !Select
+                - 0
+                - !Split
+                  - '-'
+                  - !Ref GatewaysLicense
+              - -iam
+          - !If
+            - EnableBlades
+            - !Join
+              - ' '
+              - - \n
+                - autoprov-cfg -f set template -tn
+                - CHKP-QuickStart-Template
+                - -ips
+                - -appi
+                - -av
+                - -ab
+            - !Ref AWS::NoValue
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Permissive security group
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        IpProtocol: -1
+        CidrIp: 0.0.0.0/0
+  TargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Port: 8081
+      VpcId: !Ref VPC
+      Protocol: HTTP
+  LoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      IpAddressType: ipv4
+      Subnets: !Ref GatewaysSubnets
+      Scheme: internet-facing
+      Name: CHKP-QuickStart-External-ALB
+      SecurityGroups:
+      - !Ref SecurityGroup
+  Listener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+      - Type: forward
+        TargetGroupArn: !Ref TargetGroup
+      LoadBalancerArn: !Ref LoadBalancer
+      Port: !Ref ServicePort
+      Protocol: HTTP
+  AutoScalingStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub https://s3-ap-southeast-2.amazonaws.com/${QSS3BucketName}/${QSS3KeyPrefix}/templates/autoscale.template
+      Parameters:
+        VPC: !Ref VPC
+        Subnets: !Join
+        - ','
+        - !Ref GatewaysSubnets
+        MinSize: !Ref GatewaysMinSize
+        MaxSize: !Ref GatewaysMaxSize
+        ManagementServer: CHKP-QuickStart-Management
+        ConfigurationTemplate: CHKP-QuickStart-Template
+        Name: CHKP-QuickStart-Gateway
+        InstanceType: !Ref GatewaysInstanceType
+        AdminEmail: !Ref AdminEmail
+        KeyName: !Ref Key
+        PasswordHash: !Ref GatewaysPasswordHash
+        SICKey: !Ref GatewaysSIC
+        License: !Ref GatewaysLicense
+        TargetGroups: !Ref TargetGroup
+        BootstrapScript: "sed -i '/template_name/c\template_name: quickstart-autoscale' /etc/cloud-version"
+  ServersTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Condition: DeployServers
+    Properties: 
+      Port: !Ref ServicePort
+      VpcId: !Ref VPC
+      Protocol: HTTP
+  ServersLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Condition: DeployServers
+    Properties:
+      IpAddressType: ipv4
+      Subnets: !Split
+      - ','
+      - !Ref ServersSubnets
+      Scheme: internal
+      SecurityGroups:
+      - !Ref SecurityGroup
+      Name: CHKP-QuickStart-Internal-ALB
+      Tags:
+      - Key: x-chkp-management
+        Value: CHKP-QuickStart-Management
+      - Key: x-chkp-template
+        Value: CHKP-QuickStart-Template
+  ServersListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Condition: DeployServers
+    Properties:
+      DefaultActions:
+      - Type: forward
+        TargetGroupArn: !Ref ServersTargetGroup
+      LoadBalancerArn: !Ref ServersLoadBalancer
+      Port: 8081
+      Protocol: HTTP
+  ServersStack:
+    Type: AWS::CloudFormation::Stack
+    Condition: DeployServers
+    Properties:
+      TemplateURL: !Sub https://s3-ap-southeast-2.amazonaws.com/${QSS3BucketName}/${QSS3KeyPrefix}/templates/autoscale-custom.template
+      Parameters:
+        VPC: !Ref VPC
+        Subnets: !Ref ServersSubnets
+        Name: CHKP-QuickStart-Server
+        ImageId: !Ref ServersAMI
+        InstanceType: !Ref ServersInstanceType
+        TargetGroups: !Ref ServersTargetGroup
+        KeyName: !Ref Key
+        MinSize: !Ref GatewaysMinSize
+        MaxSize: !Ref GatewaysMaxSize
+        AdminEmail: !Ref AdminEmail
+Outputs:
+  InternalPort:
+    Description: The internal Load Balancer should listen to this port
+    Value: 8081
+  ManagementName:
+    Description: The name that represnts the Smart Management Server
+    Value: CHKP-QuickStart-Management
+  ConfigurationTemplateName:
+    Description: The name that represents the configuration template. Configurations required to automatically provision the Gateways in the Auto Scaling Group, such as what Security Policy to install and which Blades to enable, will be placed under this template name
+    Value: CHKP-QuickStart-Template
+  ControllerName:
+    Description: The name that represents the controller. Configurations required to connect to your AWS environment, such as credentials and regions, will be placed under this controller name
+    Value: CHKP-QuickStart-Controller
+  URL:
+    Description: The URL of the external Load Balancer
+    Value: !GetAtt
+    - LoadBalancer
+    - DNSName
+
