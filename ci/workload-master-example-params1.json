@@ -1,0 +1,110 @@
+[
+    {
+        "ParameterKey": "VpcCidr",
+        "ParameterValue": "10.0.0.0/16"
+    },
+    {
+        "ParameterKey": "AvailabilityZones",
+        "ParameterValue": "$[alfred_getaz_2]"
+    },
+    {
+        "ParameterKey": "NumberOfAZs",
+        "ParameterValue": "2"
+    },
+    {
+        "ParameterKey": "PublicSubnetCidrA",
+        "ParameterValue": "10.0.0.0/24"
+    },
+    {
+        "ParameterKey": "PublicSubnetCidrB",
+        "ParameterValue": "10.0.2.0/24"
+    },
+    {
+        "ParameterKey": "PublicSubnetCidrC",
+        "ParameterValue": "10.0.4.0/24"
+    },
+    {
+        "ParameterKey": "PublicSubnetCidrD",
+        "ParameterValue": "10.0.6.0/24"
+    },
+    {
+        "ParameterKey": "PrivateSubnetCidrA",
+        "ParameterValue": "10.0.1.0/24"
+    },
+    {
+        "ParameterKey": "PrivateSubnetCidrB",
+        "ParameterValue": "10.0.3.0/24"
+    },
+    {
+        "ParameterKey": "PrivateSubnetCidrC",
+        "ParameterValue": "10.0.5.0/24"
+    },
+    {
+        "ParameterKey": "PrivateSubnetCidrD",
+        "ParameterValue": "10.0.7.0/24"
+    },
+    {
+        "ParameterKey": "Tag",
+        "ParameterValue": "QuickStart1"
+    },
+    {
+        "ParameterKey": "Protocol",
+        "ParameterValue": "HTTP"
+    },
+    {
+        "ParameterKey": "ServicePort",
+        "ParameterValue": "80"
+    },
+    {
+        "ParameterKey": "ManagementDeploy",
+        "ParameterValue": "Yes"
+    },
+    {
+        "ParameterKey": "ServersDeploy",
+        "ParameterValue": "No"
+    },
+    {
+        "ParameterKey": "ManagementInstanceType",
+        "ParameterValue": "m4.xlarge"
+    },
+    {
+        "ParameterKey": "KeyPairName",
+        "ParameterValue": "shared"
+    },
+    {
+        "ParameterKey": "GatewaysInstanceType",
+        "ParameterValue": "c4.xlarge"
+    },
+    {
+        "ParameterKey": "GatewaysMinSize",
+        "ParameterValue": "2"
+    },
+    {
+        "ParameterKey": "GatewaysMaxSize",
+        "ParameterValue": "10"
+    },
+    {
+        "ParameterKey": "GatewaysPolicy",
+        "ParameterValue": "Standard"
+    },
+    {
+        "ParameterKey": "GatewaysBlades",
+        "ParameterValue": "On"
+    },
+    {
+        "ParameterKey": "GatewaysLicense",
+        "ParameterValue": "R80.10-BYOL"
+    },
+    {
+        "ParameterKey": "GatewaysSIC",
+        "ParameterValue": "$[alfred_genpass_8]"
+    },
+    {
+        "ParameterKey": "ServersAMI",
+        "ParameterValue": ""
+    },
+    {
+        "ParameterKey": "Certificate",
+        "ParameterValue": ""
+    }
+]
