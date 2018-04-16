@@ -130,7 +130,7 @@ Parameters:
     - Network Load Balancer
     - Application Load Balancer
   ServicePort:
-    Description: The external Load Balancer listens to this port. Leave this field blank to use default ports: 80 for HTTP and 443 for HTTPS
+    Description: 'The external Load Balancer listens to this port. Leave this field blank to use default ports: 80 for HTTP and 443 for HTTPS'
     Type: String
     AllowedPattern: "(|[0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])"
   AdminEmail:
@@ -426,12 +426,8 @@ Resources:
       VpcId: !Ref VPC
       SecurityGroupIngress:
       - IpProtocol: tcp
-        FromPort: !If [ProvidedPort, ServicePort, !If [HTTP, '80', '443']]
-        ToPort: !If [ProvidedPort, ServicePort, !If [HTTP, '80', '443']]
-        CidrIp: 0.0.0.0/0
-      - IpProtocol: tcp
-        FromPort: 8081
-        ToPort: 8081
+        FromPort: 0
+        ToPort: 65535
         CidrIp: 0.0.0.0/0
   InternallLBTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup

@@ -52,8 +52,8 @@
         "ParameterValue": "HTTP"
     },
     {
-        "ParameterKey": "ServicePort",
-        "ParameterValue": "80"
+        "ParameterKey": "ExternalLoadBalancerType",
+        "ParameterValue": "Network Load Balancer"
     },
     {
         "ParameterKey": "ManagementDeploy",
@@ -101,6 +101,10 @@
     },
     {
         "ParameterKey": "Certificate",
+        "ParameterValue": ""
+    },
+    {
+        "ParameterKey": "ServicePort",
         "ParameterValue": ""
     }
 ]

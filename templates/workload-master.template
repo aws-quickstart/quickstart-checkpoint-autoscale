@@ -20,10 +20,10 @@ Metadata:
     - Label:
         default: General Settings
       Parameters:
-      - Tag
       - Protocol
       - ServicePort
       - Certificate
+      - ExternalLoadBalancerType
       - AdminEmail
       - KeyPairName
       - ManagementDeploy
@@ -31,12 +31,14 @@ Metadata:
     - Label:
         default: Check Point Gateway Auto Scaling Group Configuration
       Parameters:
+      - Tag
       - GatewaysInstanceType
       - GatewaysMinSize
       - GatewaysMaxSize
       - GatewaysLicense
       - GatewaysPasswordHash
       - GatewaysSIC
+      - GatewayAllowUploadDownload
     - Label:
         default: Check Point Smart Management Server Configuration (ignored if you choose not to deploy a Smart Management Server)
       Parameters:
@@ -85,6 +87,8 @@ Metadata:
         default: Key name
       ManagementPasswordHash:
         default: Password hash
+      Tag:
+        default: Auto Provision tag
       GatewaysInstanceType:
         default: Instance type
       GatewaysMinSize:
@@ -103,12 +107,16 @@ Metadata:
         default: Password hash
       GatewaysSIC:
         default: SIC key
+      GatewayAllowUploadDownload:
+        default: Allow upload & download
       Protocol:
         default: Protocol
       Certificate:
         default: HTTPS Certificate
       ServicePort:
-        default: Service Port
+        default: Custom service port
+      ExternalLoadBalancerType:
+        default: External Load Balancer
       ServersDeploy:
         default: Deploy Servers
       ServersAMI:
@@ -187,11 +195,13 @@ Parameters:
     Default: 10.0.7.0/24
     ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28
   Tag:
-    Description: A tag added to the resources names. The tag must be up to 12 alphanumeric character and unique for each Quick Start deployed in this region.
+    Description: The tag is used by the Smart Management Server to automatically provision the Security Gateways. Must be up to 12 alphanumeric character and unique for each Quick Start deployed in this AWS account
     Type: String
     Default: QuickStart
+    AllowedPattern: "^[a-zA-Z0-9-]*$"
     MinLength: 1
     MaxLength: 12
+    ConstraintDescription: The tag must be up to 12 alphanumeric character
   Protocol:
     Description: The protocol to use for routing traffic to the targets
     Type: String
@@ -203,10 +213,16 @@ Parameters:
     Description: HTTPS Certificate Amazon Resource Name (ARN), ignored if the selected protocol is HTTP
     Type: String
   ServicePort:
-    Description: The external Application Load Balancer listens to this port
-    Type: Number
-    Default: 80
-    MinValue: 1
+    Description: 'The external Load Balancer listens to this port. Leave this field blank to use default ports: 80 for HTTP and 443 for HTTPS'
+    Type: String
+    AllowedPattern: "(|[0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])"
+  ExternalLoadBalancerType:
+    Description: Use Network Load Balancer if you wish to preserve the source IP address and Application Load Balancer if you wish to perform SSL Offloading
+    Default: Network Load Balancer
+    Type: String
+    AllowedValues:
+    - Network Load Balancer
+    - Application Load Balancer
   ManagementDeploy:
     Description: Select 'No' to use an existing Smart Management Server or to deploy one later
     Type: String
@@ -304,6 +320,13 @@ Parameters:
     Type: String
     AllowedPattern: "[a-zA-Z0-9]*"
     ConstraintDescription: Secure Internal Communication activation key should contain only alpha numeric characters and be at least 8 characters long
+  GatewayAllowUploadDownload:
+    Description: Automatically download Blade Contracts and other important data. Improve product experience by sending data to Check Point
+    Type: String
+    Default: 'Yes'
+    AllowedValues:
+    - 'Yes'
+    - 'No'
   ServersAMI:
     Description: The Amazon Machine Image ID used to deploy the servers (e.g. ami-0dc7dc63)
     Type: String
@@ -339,12 +362,14 @@ Conditions:
   - !Equals [!Ref NumberOfAZs, 3]
   - !Equals [!Ref NumberOfAZs, 4]
   4AZs: !Equals [!Ref NumberOfAZs, 4]
+  ALB: !Equals [!Ref ExternalLoadBalancerType, Application Load Balancer]
+  NLB: !Equals [!Ref ExternalLoadBalancerType, Network Load Balancer]
 Resources:
   VPCStack:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub 
-      - https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}submodules/quickstart-aws-vpc/templates/aws-vpc.template
+      - https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}templates/vpc.template
       - { QSS3Region: !If [GovCloudCondition, s3-us-gov-west-1, s3] }
       Parameters:
         VPCCIDR: !Ref VpcCidr
@@ -375,6 +400,7 @@ Resources:
         Protocol: !Ref Protocol
         ServicePort: !Ref ServicePort
         Certificate: !Ref Certificate
+        ExternalLoadBalancerType: !Ref ExternalLoadBalancerType
         AdminEmail: !Ref AdminEmail
         KeyPairName: !Ref KeyPairName
         ManagementDeploy: !Ref ManagementDeploy
@@ -407,6 +433,7 @@ Resources:
         GatewaysLicense: !Ref GatewaysLicense
         GatewaysPasswordHash: !Ref GatewaysPasswordHash
         GatewaysSIC: !Ref GatewaysSIC
+        GatewayAllowUploadDownload: !Ref GatewayAllowUploadDownload
         ManagementInstanceType: !Ref ManagementInstanceType
         ManagementPasswordHash: !Ref ManagementPasswordHash
         ServersSubnets: !Join
@@ -454,8 +481,15 @@ Outputs:
     Value: !GetAtt
     - MainStack
     - Outputs.ControllerName
-  URL:
-    Description: The URL of the external Load Balancer
+  ALBURL:
+    Description: The URL of the external Application Load Balancer
+    Condition: ALB
     Value: !GetAtt
     - MainStack
-    - Outputs.URL
+    - Outputs.ALBURL
+  NLBURL:
+    Description: The URL of the external Network Load Balancer
+    Condition: NLB
+    Value: !GetAtt
+    - MainStack
+    - Outputs.NLBURL
