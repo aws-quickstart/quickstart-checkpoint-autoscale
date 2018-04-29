@@ -467,7 +467,7 @@ Outputs:
     - MainStack
     - Outputs.InternalPort
   ManagementName:
-    Description: The name that represnts the Smart Management Server
+    Description: The name that represents the Smart Management Server
     Value: !GetAtt
     - MainStack
     - Outputs.ManagementName

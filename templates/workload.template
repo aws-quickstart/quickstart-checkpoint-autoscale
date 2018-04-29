@@ -428,11 +428,11 @@ Resources:
       - IpProtocol: tcp
         FromPort: 8081
         ToPort: 8081
-        CidrIp: 0.0.0.0/0
+        SourceSecurityGroupId: !GetAtt [GatewayStack, Outputs.SecurityGroup]
       - IpProtocol: icmp
         FromPort: -1
         ToPort: -1
-        CidrIp: 0.0.0.0/0
+        SourceSecurityGroupId: !GetAtt [GatewayStack, Outputs.SecurityGroup]
   InternallLBTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Condition: DeployServers
@@ -507,7 +507,7 @@ Outputs:
     Description: The internal Load Balancer should listen to this port
     Value: 8081
   ManagementName:
-    Description: The name that represnts the Smart Management Server
+    Description: The name that represents the Smart Management Server
     Value: !Sub
     - ${Tag}-management
     - {Tag: !Ref Tag}

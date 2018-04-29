@@ -924,6 +924,15 @@
           ]
         ]
       }
+    },
+    "SecurityGroup": {
+      "Description": "The Security Group of the Auto Scaling group",
+      "Value": {
+        "Fn::GetAtt": [
+          "PermissiveSecurityGroup",
+          "GroupId"
+        ]
+      }
     }
   }
 }
