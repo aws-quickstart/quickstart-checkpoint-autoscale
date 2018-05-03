@@ -45,7 +45,7 @@
     },
     {
         "ParameterKey": "Tag",
-        "ParameterValue": "QuickStart1"
+        "ParameterValue": "TaskCat1"
     },
     {
         "ParameterKey": "Protocol",
@@ -93,6 +93,10 @@
     },
     {
         "ParameterKey": "GatewaysLicense",
+        "ParameterValue": "R80.10-BYOL"
+    },
+    {
+        "ParameterKey": "ManagementLicense",
         "ParameterValue": "R80.10-BYOL"
     },
     {
