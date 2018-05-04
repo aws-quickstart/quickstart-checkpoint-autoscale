@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: Deploy a Security Gateway Auto Scaling Group, an external ALB, and optinally a Smart Management Server and a server Auto Scaling Group
+Description: Deploy a Check Point CloudGuard IaaS Security Gateway Auto Scaling Group, an external ALB, and optionally a Management Server and a web server Auto Scaling Group
 Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
@@ -16,7 +16,7 @@ Metadata:
       - ManagementDeploy
       - ServersDeploy
     - Label:
-        default: Check Point Gateway Auto Scaling Group Configuration
+        default: Check Point CloudGuard IaaS Security Gateways Auto Scaling Group Configuration
       Parameters:
       - Tag
       - GatewaysSubnets
@@ -28,23 +28,19 @@ Metadata:
       - GatewaysSIC
       - GatewayAllowUploadDownload
     - Label:
-        default: Check Point Smart Management Server Configuration (ignored if you choose not to deploy a Smart Management Server)
+        default: Check Point CloudGuard IaaS Management Server Configuration (ignored if you choose not to deploy a Management Server)
       Parameters:
       - ManagementInstanceType
+      - ManagementLicense
       - ManagementPasswordHash
       - GatewaysPolicy
       - GatewaysBlades
     - Label:
-        default: Workload Servers Auto Scaling Group Configuration (ignored if you choose not to deploy servers)
+        default: Web Servers Auto Scaling Group Configuration (ignored if you choose not to deploy servers)
       Parameters:
       - ServersSubnets
       - ServersInstanceType
       - ServersAMI
-    - Label:
-        default: AWS Quick Start Configuration
-      Parameters:
-      - QSS3BucketName
-      - QSS3KeyPrefix
     ParameterLabels:
       Tag:
         default: Auto Provision tag
@@ -63,7 +59,7 @@ Metadata:
       KeyPairName:
         default: Key name
       ManagementDeploy:
-        default: Deploy Smart Management
+        default: Deploy Management Server
       ServersDeploy:
         default: Deploy servers
       GatewaysSubnets:
@@ -84,6 +80,8 @@ Metadata:
         default: Allow upload & download
       ManagementInstanceType:
         default: Instance type
+      ManagementLicense:
+        default: License
       ManagementPasswordHash:
         default: Password hash
       GatewaysPolicy:
@@ -96,13 +94,9 @@ Metadata:
         default: Instance Type
       ServersAMI:
         default: AMI ID
-      QSS3BucketName:
-        default: Quick Start S3 Bucket Name
-      QSS3KeyPrefix:
-        default: Quick Start S3 Key Prefix
 Parameters:
   Tag:
-    Description: The tag is used by the Smart Management Server to automatically provision the Security Gateways. Must be up to 12 alphanumeric character and unique for each Quick Start deployed in this AWS account
+    Description: The tag is used by the Management Server to automatically provision the Security Gateways. Must be up to 12 alphanumeric characters and unique for each Quick Start deployment
     Type: String
     Default: QuickStart
     AllowedPattern: "^[a-zA-Z0-9-]*$"
@@ -113,14 +107,14 @@ Parameters:
     Description: Select an existing VPC
     Type: AWS::EC2::VPC::Id
   Protocol:
-    Description: The protocol to use for routing traffic to the targets
+    Description: The protocol to use
     Type: String
     Default: HTTP
     AllowedValues:
     - HTTP
     - HTTPS
   Certificate:
-    Description: HTTPS Certificate Amazon Resource Name (ARN), ignored if the selected protocol is HTTP
+    Description: Amazon Resource Name (ARN) of an HTTPS Certificate, ignored if the selected protocol is HTTP
     Type: String
   ExternalLoadBalancerType:
     Description: Use Network Load Balancer if you wish to preserve the source IP address and Application Load Balancer if you wish to perform SSL Offloading
@@ -145,21 +139,21 @@ Parameters:
     MinLength: 1
     ConstraintDescription: must be the name of an existing EC2 KeyPair.
   ManagementDeploy:
-    Description: Select 'No' to use an existing Smart Management Server or to deploy one later
+    Description: Select 'No' to use an existing Management Server or to deploy one later
     Type: String
     Default: 'Yes'
     AllowedValues:
     - 'Yes'
     - 'No'
   ServersDeploy:
-    Description: Select 'Yes' to deploy webservers and an internal Load Balancer
+    Description: Select 'Yes' to deploy web servers and an internal Application Load Balancer
     Type: String
     Default: 'No'
     AllowedValues:
     - 'Yes'
     - 'No'
   GatewaysSubnets:
-    Description: Select at least 2 public subnets in the VPC. If you choose to deploy a Smart Management Server it will be deployed in the first subnet
+    Description: Select at least 2 public subnets in the VPC. If you choose to deploy a Management Server it will be deployed in the first subnet
     Type: List<AWS::EC2::Subnet::Id>
     MinLength: 1
   GatewaysInstanceType:
@@ -180,13 +174,13 @@ Parameters:
     MinValue: 1
   GatewaysMaxSize:
     Description: The maximal number of Security Gateways
-    Default: 10
+    Default: 5
     Type: Number
     MinValue: 1
   GatewaysLicense:
     Description: The license to install on the Security Gateways
     Type: String
-    Default: R80.10-BYOL
+    Default: R80.10-PAYG-NGTX
     AllowedValues:
     - R80.10-BYOL
     - R80.10-PAYG-NGTP
@@ -198,7 +192,7 @@ Parameters:
     AllowedPattern: "[\\$\\./a-zA-Z0-9]*"  
     NoEcho: true
   GatewaysSIC:
-    Description: Secure Internal Communication activation key
+    Description: Secure Internal Communication activation key. Choose a random string consisting of at least 8 alphanumeric characters.
     NoEcho: true
     MinLength: 8
     Type: String
@@ -212,7 +206,7 @@ Parameters:
     - 'Yes'
     - 'No'
   ManagementInstanceType:
-    Description: The EC2 instance type of the Smart Management Server
+    Description: The EC2 instance type of the Management Server
     Type: String
     Default: m4.xlarge
     AllowedValues:
@@ -223,6 +217,13 @@ Parameters:
     - m4.10xlarge
     - m4.16xlarge
     ConstraintDescription: must be a valid EC2 instance type
+  ManagementLicense:
+    Description: The license to install on the Management Server
+    Type: String
+    Default: R80.10-PAYG-MGMT5
+    AllowedValues:
+    - R80.10-BYOL
+    - R80.10-PAYG-MGMT5
   ManagementPasswordHash:
     Description: Admin user's password hash (use command \"openssl passwd -1 PASSWORD\" to get the PASSWORD's hash) (optional)
     Type: String
@@ -230,7 +231,7 @@ Parameters:
     AllowedPattern: "[\\$\\./a-zA-Z0-9]*"
     NoEcho: true
   GatewaysPolicy:
-    Description: The name of the Security Policy package to be installed on the Auto Scaling group gateways
+    Description: The name of the Security Policy package to be installed on the gateways in the Security Gateways Auto Scaling group
     Type: String
     Default: Standard
     MinLength: 1
@@ -247,7 +248,7 @@ Parameters:
     AllowedPattern: "^((subnet-(([0-9a-f]{8})|([0-9a-f]{17})),)*(subnet-(([0-9a-f]{8})|([0-9a-f]{17})))+)$|^$"
     ConstraintDescription: subnet IDs must be in the form subnet-xxxxxxxx or subnet-xxxxxxxxxxxxxxxxx, separated by commas without spaces
   ServersInstanceType:
-    Description: The EC2 instance type for the workload servers
+    Description: The EC2 instance type for the web servers
     Type: String
     Default: t2.micro
     AllowedValues:
@@ -264,18 +265,6 @@ Parameters:
     Type: String
     AllowedPattern: "^(ami-(([0-9a-f]{8})|([0-9a-f]{17})))?$"
     ConstraintDescription: Amazon Machine Image ID must be in the form ami-xxxxxxxx or ami-xxxxxxxxxxxxxxxxx
-  QSS3BucketName:
-    Description: S3 bucket name for the Quick Start assets. Quick Start bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-)
-    AllowedPattern: "^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$"
-    ConstraintDescription: Quick Start bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).
-    Default: michaelshv-bucket
-    Type: String
-  QSS3KeyPrefix:
-    Description: S3 key prefix for the Quick Start assets. Quick Start key prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/)
-    AllowedPattern: "^[0-9a-zA-Z-/]*$"
-    ConstraintDescription: Quick Start key prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/).
-    Default: quickstart/
-    Type: String
 Conditions:
   GovCloudCondition: !Equals [!Ref "AWS::Region", us-gov-west-1]
   EnableBlades: !Equals [!Ref GatewaysBlades, 'On']
@@ -296,15 +285,13 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Condition: DeployManagement
     Properties:
-      TemplateURL: !Sub
-      - https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}templates/management.template
-      - {QSS3Region: !If [GovCloudCondition, s3-us-gov-west-1, s3]}
+      TemplateURL: https://s3.amazonaws.com/cloudformationtemplatestaging/QuickStart/AutoScaling/templates/management.template
       Parameters:
         VPC: !Ref VPC
         Subnet: !Select
         - 0
         - !Ref GatewaysSubnets
-        Version: R80.10-BYOL
+        Version: !Ref ManagementLicense
         InstanceType: !Ref ManagementInstanceType
         Name: !Sub
         - ${Tag}-management
@@ -391,9 +378,7 @@ Resources:
   GatewayStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: !Sub 
-      - https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}templates/autoscale.template
-      - {QSS3Region: !If [GovCloudCondition, s3-us-gov-west-1, s3]}
+      TemplateURL: https://s3.amazonaws.com/cloudformationtemplatestaging/QuickStart/AutoScaling/templates/autoscale.template
       Parameters:
         VPC: !Ref VPC
         Subnets: !Join
@@ -486,9 +471,7 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Condition: DeployServers
     Properties:
-      TemplateURL: !Sub 
-      - https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}templates/autoscale-custom.template
-      - {QSS3Region: !If [GovCloudCondition, s3-us-gov-west-1, s3]}
+      TemplateURL: https://s3.amazonaws.com/cloudformationtemplatestaging/QuickStart/AutoScaling/templates/autoscale-custom.template
       Parameters:
         VPC: !Ref VPC
         Subnets: !Ref ServersSubnets
@@ -507,7 +490,7 @@ Outputs:
     Description: The internal Load Balancer should listen to this port
     Value: 8081
   ManagementName:
-    Description: The name that represents the Smart Management Server
+    Description: The name that represents the Management Server
     Value: !Sub
     - ${Tag}-management
     - {Tag: !Ref Tag}
@@ -533,4 +516,3 @@ Outputs:
     Value: !GetAtt
     - ExternalNetworkLoadBalancer
     - DNSName
-
