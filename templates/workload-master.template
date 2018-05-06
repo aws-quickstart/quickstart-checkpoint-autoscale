@@ -215,6 +215,8 @@ Parameters:
   Certificate:
     Description: Amazon Resource Name (ARN) of an HTTPS Certificate, ignored if the selected protocol is HTTP
     Type: String
+    AllowedPattern: "(arn:aws:[a-z]+::[0-9]{12}:server-certificate/[a-zA-Z0-9-]*)"
+    ConstraintDescription: 'must be a valid Amazon Resource Name (ARN), for example: arn:aws:iam::123456789012:server-certificate/web-server-certificate'
   ServicePort:
     Description: 'The external Load Balancer listens to this port. Leave this field blank to use default ports: 80 for HTTP and 443 for HTTPS'
     Type: String
@@ -265,7 +267,7 @@ Parameters:
     MinLength: 1
     ConstraintDescription: must be the name of an existing EC2 KeyPair.
   ManagementPasswordHash:
-    Description: Admin user's password hash (use command \"openssl passwd -1 PASSWORD\" to get the PASSWORD's hash) (optional)
+    Description: Admin user's password hash (use command "openssl passwd -1 PASSWORD" to get the PASSWORD's hash) (optional)
     Type: String
     Default: ''
     AllowedPattern: "[\\$\\./a-zA-Z0-9]*"
@@ -318,7 +320,7 @@ Parameters:
     - R80.10-PAYG-NGTP
     - R80.10-PAYG-NGTX
   GatewaysPasswordHash:
-    Description: Admin user's password hash (use command \"openssl passwd -1 PASSWORD\" to get the PASSWORD's hash) (optional)
+    Description: Admin user's password hash (use command "openssl passwd -1 PASSWORD" to get the PASSWORD's hash) (optional)
     Type: String
     Default: ''
     AllowedPattern: "[\\$\\./a-zA-Z0-9]*"
