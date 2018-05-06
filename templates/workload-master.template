@@ -380,7 +380,7 @@ Resources:
   VPCStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.amazonaws.com/cloudformationtemplatestaging/QuickStart/AutoScaling/templates/vpc.template
+      TemplateURL: https://s3.amazonaws.com/cloudformationtemplatestaging/QuickStart/AutoScaling/templates/vpc.json
       Parameters:
         VPCCIDR: !Ref VpcCidr
         AvailabilityZones: !Join
