@@ -20,9 +20,9 @@ global:
   reporting: true
  
 tests:
-  quickstart-checkpoint-vsect1:
-    parameter_input: workload-master-example-params1.json
-    template_file: workload-master.template
-  quickstart-checkpoint-vsect2:
-    parameter_input: workload-master-example-params2.json
-    template_file: workload-master.template
+  checkpoint-alb-mgmt:
+    parameter_input: checkpoint-autoscale-alb.json
+    template_file: checkpoint-autoscale-master.template
+  checkpoint-nlb-no-mgmt:
+    parameter_input: checkpoint-autoscale-nlb.json
+    template_file: checkpoint-autoscale-master.template
