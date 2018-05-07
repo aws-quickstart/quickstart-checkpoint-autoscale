@@ -398,7 +398,7 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub 
-      - https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}templates/workload.template
+      - https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}templates/checkpoint-autoscale.template
       - { QSS3Region: !If [GovCloudCondition, s3-us-gov-west-1, s3] }
       Parameters:
         Tag: !Ref Tag
