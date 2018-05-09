@@ -114,5 +114,13 @@
     {
         "ParameterKey": "ServicePort",
         "ParameterValue": ""
+    },
+    {
+        "ParameterKey": "AdminAddresses",
+        "ParameterValue": "0.0.0.0/0"
+    },
+    {
+        "ParameterKey": "GatewaysAddresses",
+        "ParameterValue": "10.0.0.0/16"
     }
 ]
