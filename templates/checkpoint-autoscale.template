@@ -35,7 +35,7 @@ Metadata:
       - ManagementPasswordHash
       - GatewaysPolicy
       - GatewaysBlades
-      - AdminAddresses
+      - AdminAddressCIDR
       - GatewaysAddresses
     - Label:
         default: Web Servers Auto Scaling Group Configuration (ignored if you choose not to deploy servers)
@@ -86,7 +86,7 @@ Metadata:
         default: License
       ManagementPasswordHash:
         default: Password hash
-      AdminAddresses:
+      AdminAddressCIDR:
         default: Administrator addresses
       GatewaysAddresses:
         default: Gateways addresses
@@ -241,11 +241,10 @@ Parameters:
     Default: ''
     AllowedPattern: "[\\$\\./a-zA-Z0-9]*"
     NoEcho: true
-  AdminAddresses:
+  AdminAddressCIDR:
     Description: Allow web and graphical clients only from this network to communicate with the Security Management Server
     Type: String
-    Default: 0.0.0.0/0
-    AllowedPattern: "^([0-9]{1,3}\\.){3}[0-9]{1,3}/([0-9]|[1-2][0-9]|3[0-2])$"
+    AllowedPattern: "^(([0-9]{1,3}\\.){3}[0-9]{1,3}/([0-9]|[1-2][0-9]|3[0-2]))?$"
   GatewaysAddresses:
     Description: Allow gateways only from this network to communicate with the Security Management Server
     Type: String
@@ -331,7 +330,7 @@ Resources:
               - autoprov-cfg -f set template -tn ${Tag}-template -ips -appi -av -ab
               - {Tag: !Ref Tag}
             - !Ref AWS::NoValue
-        AdminSubnet: !Ref AdminAddresses
+        AdminSubnet: !Ref AdminAddressCIDR
         GatewaysAddresses: !Ref GatewaysAddresses
   ExternalLBSecurityGroup:
     Type: AWS::EC2::SecurityGroup

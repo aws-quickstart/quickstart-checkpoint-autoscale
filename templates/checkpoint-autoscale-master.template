@@ -47,7 +47,7 @@ Metadata:
       - ManagementPasswordHash
       - GatewaysPolicy
       - GatewaysBlades
-      - AdminAddresses
+      - AdminAddressCIDR
       - GatewaysAddresses
     - Label:
         default: Web servers Auto Scaling Group Configuration (ignored if you choose not to deploy servers)
@@ -92,7 +92,7 @@ Metadata:
         default: Key name
       ManagementPasswordHash:
         default: Password hash
-      AdminAddresses:
+      AdminAddressCIDR:
         default: Administrator addresses
       GatewaysAddresses:
         default: Gateways addresses
@@ -279,11 +279,10 @@ Parameters:
     Default: ''
     AllowedPattern: "[\\$\\./a-zA-Z0-9]*"
     NoEcho: true
-  AdminAddresses:
+  AdminAddressCIDR:
     Description: Allow web and graphical clients only from this network to communicate with the Security Management Server
     Type: String
-    Default: 0.0.0.0/0
-    AllowedPattern: "^([0-9]{1,3}\\.){3}[0-9]{1,3}/([0-9]|[1-2][0-9]|3[0-2])$"
+    AllowedPattern: "^(([0-9]{1,3}\\.){3}[0-9]{1,3}/([0-9]|[1-2][0-9]|3[0-2]))?$"
   GatewaysAddresses:
     Description: Allow gateways only from this network to communicate with the Security Management Server
     Type: String
@@ -416,7 +415,7 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub 
-      - https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}templates/workload.template
+      - https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}templates/checkpoint-autoscale.template
       - { QSS3Region: !If [GovCloudCondition, s3-us-gov-west-1, s3] }
       Parameters:
         Tag: !Ref Tag
@@ -463,7 +462,7 @@ Resources:
         ManagementInstanceType: !Ref ManagementInstanceType
         ManagementLicense: !Ref ManagementLicense
         ManagementPasswordHash: !Ref ManagementPasswordHash
-        AdminAddresses: !Ref AdminAddresses
+        AdminAddressCIDR: !Ref AdminAddressCIDR
         GatewaysAddresses: !Ref GatewaysAddresses
         ServersSubnets: !Join
         - ','
