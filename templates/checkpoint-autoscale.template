@@ -248,7 +248,7 @@ Parameters:
   GatewaysAddresses:
     Description: Allow gateways only from this network to communicate with the Security Management Server
     Type: String
-    Default: 0.0.0.0/0
+    Default: 10.0.0.0/16
     AllowedPattern: "^([0-9]{1,3}\\.){3}[0-9]{1,3}/([0-9]|[1-2][0-9]|3[0-2])$"
   GatewaysPolicy:
     Description: The name of the Security Policy package to be installed on the gateways in the Security Gateways Auto Scaling group
