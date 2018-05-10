@@ -1,31 +1,67 @@
 [
     {
-        "ParameterKey": "VpcCidr",
-        "ParameterValue": "10.0.0.0/16"
+        "ParameterKey": "AdminAddresses",
+        "ParameterValue": "0.0.0.0/0"
     },
     {
         "ParameterKey": "AvailabilityZones",
         "ParameterValue": "$[alfred_getaz_2]"
     },
     {
-        "ParameterKey": "NumberOfAZs",
+        "ParameterKey": "Certificate",
+        "ParameterValue": ""
+    },
+    {
+        "ParameterKey": "ExternalLoadBalancerType",
+        "ParameterValue": "Network Load Balancer"
+    },
+    {
+        "ParameterKey": "GatewaysAddresses",
+        "ParameterValue": "10.0.0.0/16"
+    },
+    {
+        "ParameterKey": "GatewaysBlades",
+        "ParameterValue": "On"
+    },
+    {
+        "ParameterKey": "GatewaysInstanceType",
+        "ParameterValue": "c4.xlarge"
+    },
+    {
+        "ParameterKey": "GatewaysLicense",
+        "ParameterValue": "R80.10-BYOL"
+    },
+    {
+        "ParameterKey": "GatewaysMaxSize",
+        "ParameterValue": "10"
+    },
+    {
+        "ParameterKey": "GatewaysMinSize",
         "ParameterValue": "2"
     },
     {
-        "ParameterKey": "PublicSubnetCidrA",
-        "ParameterValue": "10.0.0.0/24"
+        "ParameterKey": "GatewaysPolicy",
+        "ParameterValue": "Standard"
     },
     {
-        "ParameterKey": "PublicSubnetCidrB",
-        "ParameterValue": "10.0.2.0/24"
+        "ParameterKey": "GatewaysSIC",
+        "ParameterValue": "$[alfred_genpass_8]"
     },
     {
-        "ParameterKey": "PublicSubnetCidrC",
-        "ParameterValue": "10.0.4.0/24"
+        "ParameterKey": "KeyPairName",
+        "ParameterValue": "shared"
     },
     {
-        "ParameterKey": "PublicSubnetCidrD",
-        "ParameterValue": "10.0.6.0/24"
+        "ParameterKey": "ManagementDeploy",
+        "ParameterValue": "No"
+    },
+    {
+        "ParameterKey": "ManagementLicense",
+        "ParameterValue": "R80.10-BYOL"
+    },
+    {
+        "ParameterKey": "NumberOfAZs",
+        "ParameterValue": "2"
     },
     {
         "ParameterKey": "PrivateSubnetCidrA",
@@ -44,79 +80,43 @@
         "ParameterValue": "10.0.7.0/24"
     },
     {
-        "ParameterKey": "Tag",
-        "ParameterValue": "TaskCat2"
-    },
-    {
         "ParameterKey": "Protocol",
         "ParameterValue": "HTTP"
     },
     {
-        "ParameterKey": "ExternalLoadBalancerType",
-        "ParameterValue": "Network Load Balancer"
+        "ParameterKey": "PublicSubnetCidrA",
+        "ParameterValue": "10.0.0.0/24"
     },
     {
-        "ParameterKey": "ManagementDeploy",
-        "ParameterValue": "No"
+        "ParameterKey": "PublicSubnetCidrB",
+        "ParameterValue": "10.0.2.0/24"
     },
     {
-        "ParameterKey": "ServersDeploy",
-        "ParameterValue": "No"
+        "ParameterKey": "PublicSubnetCidrC",
+        "ParameterValue": "10.0.4.0/24"
     },
     {
-        "ParameterKey": "KeyPairName",
-        "ParameterValue": "shared"
-    },
-    {
-        "ParameterKey": "GatewaysInstanceType",
-        "ParameterValue": "c4.xlarge"
-    },
-    {
-        "ParameterKey": "GatewaysMinSize",
-        "ParameterValue": "2"
-    },
-    {
-        "ParameterKey": "GatewaysMaxSize",
-        "ParameterValue": "10"
-    },
-    {
-        "ParameterKey": "GatewaysPolicy",
-        "ParameterValue": "Standard"
-    },
-    {
-        "ParameterKey": "GatewaysBlades",
-        "ParameterValue": "On"
-    },
-    {
-        "ParameterKey": "GatewaysLicense",
-        "ParameterValue": "R80.10-BYOL"
-    },
-    {
-        "ParameterKey": "ManagementLicense",
-        "ParameterValue": "R80.10-BYOL"
-    },
-    {
-        "ParameterKey": "GatewaysSIC",
-        "ParameterValue": "$[alfred_genpass_8]"
+        "ParameterKey": "PublicSubnetCidrD",
+        "ParameterValue": "10.0.6.0/24"
     },
     {
         "ParameterKey": "ServersAMI",
         "ParameterValue": ""
     },
     {
-        "ParameterKey": "Certificate",
-        "ParameterValue": ""
+        "ParameterKey": "ServersDeploy",
+        "ParameterValue": "No"
     },
     {
         "ParameterKey": "ServicePort",
         "ParameterValue": ""
     },
     {
-        "ParameterKey": "AdminAddresses",
-        "ParameterValue": "0.0.0.0/0"
+        "ParameterKey": "Tag",
+        "ParameterValue": "TaskCat2"
     },
     {
-        "ParameterKey": "GatewaysAddresses",
+        "ParameterKey": "VpcCidr",
         "ParameterValue": "10.0.0.0/16"
     }
 ]
