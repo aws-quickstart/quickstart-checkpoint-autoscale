@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: Deploy a Check Point CloudGuard IaaS Security Gateway Auto Scaling Group, an external ALB, and optionally a Management Server and a web server Auto Scaling Group
+Description: Deploy a Check Point CloudGuard IaaS Security Gateway Auto Scaling Group, an external ALB, and optionally a Security Management Server and a web server Auto Scaling Group
 Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
@@ -15,10 +15,10 @@ Metadata:
       - KeyPairName
       - ManagementDeploy
       - ServersDeploy
+      - Tag
     - Label:
         default: Check Point CloudGuard IaaS Security Gateways Auto Scaling Group Configuration
       Parameters:
-      - Tag
       - GatewaysSubnets
       - GatewaysInstanceType
       - GatewaysMinSize
@@ -28,13 +28,15 @@ Metadata:
       - GatewaysSIC
       - GatewayAllowUploadDownload
     - Label:
-        default: Check Point CloudGuard IaaS Management Server Configuration (ignored if you choose not to deploy a Management Server)
+        default: Check Point CloudGuard IaaS Security Management Server Configuration (ignored if you choose not to deploy a Management Server)
       Parameters:
       - ManagementInstanceType
       - ManagementLicense
       - ManagementPasswordHash
       - GatewaysPolicy
       - GatewaysBlades
+      - AdminAddressCIDR
+      - GatewaysAddresses
     - Label:
         default: Web Servers Auto Scaling Group Configuration (ignored if you choose not to deploy servers)
       Parameters:
@@ -49,7 +51,7 @@ Metadata:
       Protocol:
         default: Protocol
       Certificate:
-        default: HTTPS Certificate
+        default: HTTPS certificate
       ServicePort:
         default: Custom service port
       ExternalLoadBalancerType:
@@ -84,6 +86,10 @@ Metadata:
         default: License
       ManagementPasswordHash:
         default: Password hash
+      AdminAddressCIDR:
+        default: Administrator addresses
+      GatewaysAddresses:
+        default: Gateways addresses
       GatewaysPolicy:
         default: Security Policy
       GatewaysBlades:
@@ -91,12 +97,12 @@ Metadata:
       ServersSubnets:
         default: Subnet IDs
       ServersInstanceType:
-        default: Instance Type
+        default: Instance type
       ServersAMI:
         default: AMI ID
 Parameters:
   Tag:
-    Description: The tag is used by the Management Server to automatically provision the Security Gateways. Must be up to 12 alphanumeric characters and unique for each Quick Start deployment
+    Description: The tag is used by the Security Management Server to automatically provision the Security Gateways. Must be up to 12 alphanumeric characters and unique for each Quick Start deployment
     Type: String
     Default: QuickStart
     AllowedPattern: "^[a-zA-Z0-9-]*$"
@@ -106,6 +112,8 @@ Parameters:
   VPC:
     Description: Select an existing VPC
     Type: AWS::EC2::VPC::Id
+    MinLength: 1
+    ConstraintDescription: you must select a VPC
   Protocol:
     Description: The protocol to use
     Type: String
@@ -116,6 +124,8 @@ Parameters:
   Certificate:
     Description: Amazon Resource Name (ARN) of an HTTPS Certificate, ignored if the selected protocol is HTTP
     Type: String
+    AllowedPattern: "(|arn:aws:[a-z]+::[0-9]{12}:server-certificate/a-zA-Z0-9-]*)"
+    ConstraintDescription: 'must be a valid Amazon Resource Name (ARN), for example: arn:aws:iam::123456789012:server-certificate/web-server-certificate'
   ExternalLoadBalancerType:
     Description: Use Network Load Balancer if you wish to preserve the source IP address and Application Load Balancer if you wish to perform SSL Offloading
     Default: Network Load Balancer
@@ -126,7 +136,8 @@ Parameters:
   ServicePort:
     Description: 'The external Load Balancer listens to this port. Leave this field blank to use default ports: 80 for HTTP and 443 for HTTPS'
     Type: String
-    AllowedPattern: "(|[0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])"
+    AllowedPattern: ^([0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])?$
+    ConstraintDescription: Custom service port must be a number between 0 and 65535
   AdminEmail:
     Description: Notifications about scaling events will be sent to this email address (optional)
     Type: String
@@ -139,7 +150,7 @@ Parameters:
     MinLength: 1
     ConstraintDescription: must be the name of an existing EC2 KeyPair.
   ManagementDeploy:
-    Description: Select 'No' to use an existing Management Server or to deploy one later
+    Description: Select 'No' to use an existing Security Management Server or to deploy one later
     Type: String
     Default: 'Yes'
     AllowedValues:
@@ -153,7 +164,7 @@ Parameters:
     - 'Yes'
     - 'No'
   GatewaysSubnets:
-    Description: Select at least 2 public subnets in the VPC. If you choose to deploy a Management Server it will be deployed in the first subnet
+    Description: Select at least 2 public subnets in the VPC. If you choose to deploy a Security Management Server it will be deployed in the first subnet
     Type: List<AWS::EC2::Subnet::Id>
     MinLength: 1
   GatewaysInstanceType:
@@ -186,7 +197,7 @@ Parameters:
     - R80.10-PAYG-NGTP
     - R80.10-PAYG-NGTX
   GatewaysPasswordHash:
-    Description: Admin user's password hash (use command \"openssl passwd -1 PASSWORD\" to get the PASSWORD's hash) (optional)
+    Description: Admin user's password hash (use command "openssl passwd -1 PASSWORD" to get the PASSWORD's hash) (optional)
     Type: String
     Default: ''
     AllowedPattern: "[\\$\\./a-zA-Z0-9]*"  
@@ -206,7 +217,7 @@ Parameters:
     - 'Yes'
     - 'No'
   ManagementInstanceType:
-    Description: The EC2 instance type of the Management Server
+    Description: The EC2 instance type of the Security Management Server
     Type: String
     Default: m4.xlarge
     AllowedValues:
@@ -218,18 +229,27 @@ Parameters:
     - m4.16xlarge
     ConstraintDescription: must be a valid EC2 instance type
   ManagementLicense:
-    Description: The license to install on the Management Server
+    Description: The license to install on the Security Management Server
     Type: String
     Default: R80.10-PAYG-MGMT5
     AllowedValues:
     - R80.10-BYOL
     - R80.10-PAYG-MGMT5
   ManagementPasswordHash:
-    Description: Admin user's password hash (use command \"openssl passwd -1 PASSWORD\" to get the PASSWORD's hash) (optional)
+    Description: Admin user's password hash (use command "openssl passwd -1 PASSWORD" to get the PASSWORD's hash) (optional)
     Type: String
     Default: ''
     AllowedPattern: "[\\$\\./a-zA-Z0-9]*"
     NoEcho: true
+  AdminAddressCIDR:
+    Description: Allow web and graphical clients only from this network to communicate with the Security Management Server
+    Type: String
+    AllowedPattern: "^(([0-9]{1,3}\\.){3}[0-9]{1,3}/([0-9]|[1-2][0-9]|3[0-2]))?$"
+  GatewaysAddresses:
+    Description: Allow gateways only from this network to communicate with the Security Management Server
+    Type: String
+    Default: 0.0.0.0/0
+    AllowedPattern: "^([0-9]{1,3}\\.){3}[0-9]{1,3}/([0-9]|[1-2][0-9]|3[0-2])$"
   GatewaysPolicy:
     Description: The name of the Security Policy package to be installed on the gateways in the Security Gateways Auto Scaling group
     Type: String
@@ -285,7 +305,7 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Condition: DeployManagement
     Properties:
-      TemplateURL: https://s3.amazonaws.com/cloudformationtemplatestaging/QuickStart/AutoScaling/templates/management.template
+      TemplateURL: https://s3.amazonaws.com/cloudformationtemplatestaging/QuickStart/AutoScaling/templates/management.json
       Parameters:
         VPC: !Ref VPC
         Subnet: !Select
@@ -310,6 +330,8 @@ Resources:
               - autoprov-cfg -f set template -tn ${Tag}-template -ips -appi -av -ab
               - {Tag: !Ref Tag}
             - !Ref AWS::NoValue
+        AdminSubnet: !Ref AdminAddressCIDR
+        GatewaysAddresses: !Ref GatewaysAddresses
   ExternalLBSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Condition: ALB
@@ -318,8 +340,8 @@ Resources:
       VpcId: !Ref VPC
       SecurityGroupIngress:
       - IpProtocol: tcp
-        FromPort: !If [ProvidedPort, ServicePort, !If [HTTP, '80', '443']]
-        ToPort: !If [ProvidedPort, ServicePort, !If [HTTP, '80', '443']]
+        FromPort: !If [ProvidedPort, !Ref ServicePort, !If [HTTP, '80', '443']]
+        ToPort: !If [ProvidedPort, !Ref ServicePort, !If [HTTP, '80', '443']]
         CidrIp: 0.0.0.0/0
   ExternalApplicationLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
@@ -351,7 +373,7 @@ Resources:
       - Type: forward
         TargetGroupArn: !Ref ExternalLBTargetGroup
       LoadBalancerArn: !Ref ExternalNetworkLoadBalancer
-      Port: !If [ProvidedPort, ServicePort, !If [HTTP, '80', '443']]
+      Port: !If [ProvidedPort, !Ref ServicePort, !If [HTTP, '80', '443']]
       Protocol: TCP
   ExternalHTTPListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
@@ -361,7 +383,7 @@ Resources:
       - Type: forward
         TargetGroupArn: !Ref ExternalLBTargetGroup
       LoadBalancerArn: !Ref ExternalApplicationLoadBalancer
-      Port: !If [ProvidedPort, ServicePort, !If [HTTP, '80', '443']]
+      Port: !If [ProvidedPort, !Ref ServicePort, !If [HTTP, '80', '443']]
       Protocol: HTTP
   ExternalHTTPSListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
@@ -371,14 +393,14 @@ Resources:
       - Type: forward
         TargetGroupArn: !Ref ExternalLBTargetGroup
       LoadBalancerArn: !Ref ExternalApplicationLoadBalancer
-      Port: !If [ProvidedPort, ServicePort, !If [HTTP, '80', '443']]
+      Port: !If [ProvidedPort, !Ref ServicePort, !If [HTTP, '80', '443']]
       Protocol: HTTPS
       Certificates:
       - CertificateArn: !Ref Certificate 
   GatewayStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.amazonaws.com/cloudformationtemplatestaging/QuickStart/AutoScaling/templates/autoscale.template
+      TemplateURL: https://s3.amazonaws.com/cloudformationtemplatestaging/QuickStart/AutoScaling/templates/autoscale.json
       Parameters:
         VPC: !Ref VPC
         Subnets: !Join
@@ -422,7 +444,7 @@ Resources:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Condition: DeployServers
     Properties: 
-      Port: !If [ProvidedPort, ServicePort, !If [HTTP, '80', '443']]
+      Port: !If [ProvidedPort, !Ref ServicePort, !If [HTTP, '80', '443']]
       VpcId: !Ref VPC
       Protocol: !Ref Protocol
   InternalLoadBalancer:
@@ -471,7 +493,7 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Condition: DeployServers
     Properties:
-      TemplateURL: https://s3.amazonaws.com/cloudformationtemplatestaging/QuickStart/AutoScaling/templates/autoscale-custom.template
+      TemplateURL: https://s3.amazonaws.com/cloudformationtemplatestaging/QuickStart/AutoScaling/templates/autoscale-custom.yml
       Parameters:
         VPC: !Ref VPC
         Subnets: !Ref ServersSubnets
@@ -485,12 +507,13 @@ Resources:
         MinSize: !Ref GatewaysMinSize
         MaxSize: !Ref GatewaysMaxSize
         AdminEmail: !Ref AdminEmail
+        SecurityGroup: !Ref InternalLBSecurityGroup
 Outputs:
   InternalPort:
     Description: The internal Load Balancer should listen to this port
     Value: 8081
   ManagementName:
-    Description: The name that represents the Management Server
+    Description: The name that represents the Security Management Server
     Value: !Sub
     - ${Tag}-management
     - {Tag: !Ref Tag}
