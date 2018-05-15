@@ -280,7 +280,7 @@ Parameters:
     AllowedPattern: "[\\$\\./a-zA-Z0-9]*"
     NoEcho: true
   AdminAddressCIDR:
-    Description: Allow web and graphical clients only from this network to communicate with the Security Management Server
+    Description: Allow web, SSH, and graphical clients only from this network to communicate with the Security Management Server
     Type: String
     AllowedPattern: "^(([0-9]{1,3}\\.){3}[0-9]{1,3}/([0-9]|[1-2][0-9]|3[0-2]))?$"
   GatewaysAddresses:
@@ -342,7 +342,7 @@ Parameters:
     AllowedPattern: "[\\$\\./a-zA-Z0-9]*"
     NoEcho: true
   GatewaysSIC:
-    Description: Secure Internal Communication activation key. Choose a random string consisting of at least 8 alphanumeric characters.
+    Description: Secure Internal Communication activation key. Choose a random string consisting of at least 8 alphanumeric characters
     NoEcho: true
     MinLength: 8
     Type: String
