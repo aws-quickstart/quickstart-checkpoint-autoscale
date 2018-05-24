@@ -22,7 +22,7 @@ global:
 tests:
   checkpoint-alb-mgmt:
     parameter_input: checkpoint-autoscale-alb.json
-    template_file: checkpoint-autoscale-master.template
+    template_file: checkpoint-autoscale-master.yaml
   checkpoint-nlb-no-mgmt:
     parameter_input: checkpoint-autoscale-nlb.json
-    template_file: checkpoint-autoscale-master.template
+    template_file: checkpoint-autoscale-master.yaml
