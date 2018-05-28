@@ -356,7 +356,7 @@ Parameters:
     - 'Yes'
     - 'No'
   ServersAMI:
-    Description: The Amazon Machine Image ID used to deploy the servers (e.g. ami-0dc7dc63)
+    Description: The Amazon Machine Image ID of a preconfigured web server (e.g. ami-0dc7dc63)
     Type: String
     AllowedPattern: "^(ami-(([0-9a-f]{8})|([0-9a-f]{17})))?$"
   ServersInstanceType:
