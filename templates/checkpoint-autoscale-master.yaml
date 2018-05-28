@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: Deploy a Check Point CloudGuard IaaS Security Gateway Auto Scaling Group, an external ALB, and optionally a Security Management Server and a server Auto Scaling Group in a new VPC
+Description: Deploy a Check Point CloudGuard IaaS Security Gateway Auto Scaling Group, an external ALB, and optionally a Security Management Server and a server Auto Scaling Group in a new VPC. (qs-1ofn34qmh)
 Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
@@ -415,7 +415,7 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub 
-      - https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}templates/checkpoint-autoscale.template
+      - https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}templates/checkpoint-autoscale.yaml
       - { QSS3Region: !If [GovCloudCondition, s3-us-gov-west-1, s3] }
       Parameters:
         Tag: !Ref Tag

@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: Deploy a Check Point CloudGuard IaaS Security Gateway Auto Scaling Group, an external ALB, and optionally a Security Management Server and a web server Auto Scaling Group
+Description: Deploy a Check Point CloudGuard IaaS Security Gateway Auto Scaling Group, an external ALB, and optionally a Security Management Server and a web server Auto Scaling Group. (qs-1ofn34qmm)
 Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
