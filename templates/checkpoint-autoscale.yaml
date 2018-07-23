@@ -322,7 +322,7 @@ Resources:
         PasswordHash: !Ref ManagementPasswordHash
         BootstrapScript: !Join
         - ','
-        - - "sed -i '/template_name/c\template_name: quickstart-management' /etc/cloud-version"
+        - - "sed -i '/template_name/c\\template_name: quickstart-management' /etc/cloud-version"
           - !Sub
             - 'autoprov-cfg -f init AWS -mn ${Tag}-management -tn ${Tag}-template -cn ${Tag}-controller -po ${GatewaysPolicy} -otp ${GatewaysSIC} -r ${AWS::Region} -ver ${Version} -iam'
             - {Version: !Select [0, !Split ['-', !Ref GatewaysLicense]]}
@@ -419,7 +419,7 @@ Resources:
         License: !Ref GatewaysLicense
         TargetGroups: !Ref ExternalLBTargetGroup
         AllowUploadDownload: !If [AllowUploadDownload, 'true', 'false']
-        BootstrapScript: "sed -i '/template_name/c\template_name: quickstart-autoscale' /etc/cloud-version"
+        BootstrapScript: "sed -i '/template_name/c\\template_name: quickstart-autoscale' /etc/cloud-version"
   InternalALBSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Condition: DeployServers
