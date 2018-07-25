@@ -205,7 +205,7 @@ Parameters:
     AllowedPattern: "[\\$\\./a-zA-Z0-9]*"  
     NoEcho: true
   GatewaysSIC:
-    Description: Secure Internal Communication activation key. Choose a random string consisting of at least 8 alphanumeric characters.
+    Description: The Secure Internal Communication key creates trusted connections between Check Point components. Choose a random string consisting of at least 8 alphanumeric characters
     NoEcho: true
     MinLength: 8
     Type: String
