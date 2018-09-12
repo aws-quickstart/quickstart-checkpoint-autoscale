@@ -7,13 +7,14 @@ Metadata:
         default: General Settings
       Parameters:
       - VPC
-      - Protocol
-      - ServicePort
-      - Certificate
-      - ExternalLoadBalancerType
-      - AdminEmail
       - KeyPairName
       - Tag
+      - AdminEmail
+      - AllowUploadDownload
+      - ExternalLoadBalancerType
+      - Protocol
+      - Certificate
+      - ServicePort
     - Label:
         default: Check Point CloudGuard IaaS Security Gateways Auto Scaling Group Configuration
       Parameters:
@@ -24,7 +25,6 @@ Metadata:
       - GatewaysLicense
       - GatewaysPasswordHash
       - GatewaysSIC
-      - GatewayAllowUploadDownload
     - Label:
         default: Check Point CloudGuard IaaS Security Management Server Configuration
       Parameters:
@@ -78,7 +78,7 @@ Metadata:
         default: Password hash
       GatewaysSIC:
         default: SIC key
-      GatewayAllowUploadDownload:
+      AllowUploadDownload:
         default: Allow upload & download
       ManagementInstanceType:
         default: Instance type
@@ -211,7 +211,7 @@ Parameters:
     Type: String
     AllowedPattern: "[a-zA-Z0-9]*"
     ConstraintDescription: Secure Internal Communication activation key should contain only alpha numeric characters and be at least 8 characters long
-  GatewayAllowUploadDownload:
+  AllowUploadDownload:
     Description: Automatically download Blade Contracts and other important data. Improve product experience by sending data to Check Point
     Type: String
     Default: 'Yes'
@@ -302,7 +302,7 @@ Conditions:
   HTTPSListener: !And [!Equals [!Ref ExternalLoadBalancerType, Application Load Balancer], !Equals [!Ref Protocol, HTTPS]]
   ALB: !Equals [!Ref ExternalLoadBalancerType, Application Load Balancer]
   NLB: !Equals [!Ref ExternalLoadBalancerType, Network Load Balancer]
-  AllowUploadDownload: !Equals [!Ref GatewayAllowUploadDownload, 'Yes']
+  AllowUploadDownload: !Equals [!Ref AllowUploadDownload, 'Yes']
   ProvidedPort: !Not [!Equals [!Ref ServicePort, '']]
 Resources:
   ManagementStack:
@@ -332,6 +332,7 @@ Resources:
             - !Ref AWS::NoValue
         AdminSubnet: !Ref AdminAddressCIDR
         GatewaysAddresses: !Ref GatewaysAddresses
+        AllowUploadDownload: !If [AllowUploadDownload, 'true', 'false']
   ExternalALBSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Condition: ALB

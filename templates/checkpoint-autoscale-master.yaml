@@ -20,13 +20,14 @@ Metadata:
     - Label:
         default: General Settings
       Parameters:
-      - Protocol
-      - ServicePort
-      - Certificate
-      - ExternalLoadBalancerType
-      - AdminEmail
       - KeyPairName
       - Tag
+      - AdminEmail
+      - AllowUploadDownload
+      - ExternalLoadBalancerType
+      - Protocol
+      - Certificate
+      - ServicePort
     - Label:
         default: Check Point CloudGuard IaaS Security Gateways Auto Scaling Group Configuration
       Parameters:
@@ -36,7 +37,6 @@ Metadata:
       - GatewaysLicense
       - GatewaysPasswordHash
       - GatewaysSIC
-      - GatewayAllowUploadDownload
     - Label:
         default: Check Point CloudGuard IaaS Security Management Server Configuration
       Parameters:
@@ -116,7 +116,7 @@ Metadata:
         default: Password hash
       GatewaysSIC:
         default: SIC key
-      GatewayAllowUploadDownload:
+      AllowUploadDownload:
         default: Allow upload & download
       Protocol:
         default: Protocol
@@ -352,7 +352,7 @@ Parameters:
     Type: String
     AllowedPattern: "[a-zA-Z0-9]*"
     ConstraintDescription: Secure Internal Communication activation key should contain only alpha numeric characters and be at least 8 characters long
-  GatewayAllowUploadDownload:
+  AllowUploadDownload:
     Description: Automatically download Blade Contracts and other important data. Improve product experience by sending data to Check Point
     Type: String
     Default: 'Yes'
@@ -462,7 +462,7 @@ Resources:
         GatewaysLicense: !Ref GatewaysLicense
         GatewaysPasswordHash: !Ref GatewaysPasswordHash
         GatewaysSIC: !Ref GatewaysSIC
-        GatewayAllowUploadDownload: !Ref GatewayAllowUploadDownload
+        AllowUploadDownload: !Ref AllowUploadDownload
         ManagementInstanceType: !Ref ManagementInstanceType
         ManagementLicense: !Ref ManagementLicense
         ManagementPasswordHash: !Ref ManagementPasswordHash
