@@ -214,7 +214,7 @@ Parameters:
   AllowUploadDownload:
     Description: Automatically download Blade Contracts and other important data. Improve product experience by sending data to Check Point
     Type: String
-    Default: 'Yes'
+    Default: 'No'
     AllowedValues:
     - 'Yes'
     - 'No'
