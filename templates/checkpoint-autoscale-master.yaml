@@ -266,10 +266,10 @@ Parameters:
   ManagementLicense:
     Description: The license to install on the Security Management Server
     Type: String
-    Default: R80.10-PAYG-MGMT5
+    Default: R80.10-PAYG-MGMT
     AllowedValues:
     - R80.10-BYOL
-    - R80.10-PAYG-MGMT5
+    - R80.10-PAYG-MGMT
   KeyPairName:
     Description: The EC2 Key Pair to allow SSH access to the instances created by this stack
     Type: AWS::EC2::KeyPair::KeyName
