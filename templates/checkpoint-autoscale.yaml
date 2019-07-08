@@ -235,10 +235,10 @@ Parameters:
   ManagementLicense:
     Description: The license to install on the Security Management Server
     Type: String
-    Default: R80.10-PAYG-MGMT5
+    Default: R80.10-PAYG-MGMT
     AllowedValues:
     - R80.10-BYOL
-    - R80.10-PAYG-MGMT5
+    - R80.10-PAYG-MGMT
   ManagementPasswordHash:
     Description: Admin user's password hash (use command "openssl passwd -1 PASSWORD" to get the PASSWORD's hash) (optional)
     Type: String
