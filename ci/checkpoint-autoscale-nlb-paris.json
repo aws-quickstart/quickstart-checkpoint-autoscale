@@ -25,11 +25,11 @@
     },
     {
         "ParameterKey": "GatewaysInstanceType",
-        "ParameterValue": "t2.xlarge"
+        "ParameterValue": "c5.xlarge"
     },
     {
         "ParameterKey": "GatewaysLicense",
-        "ParameterValue": "R80.10-BYOL"
+        "ParameterValue": "R80.30-BYOL"
     },
     {
         "ParameterKey": "GatewaysMaxSize",
@@ -57,7 +57,7 @@
     },
     {
         "ParameterKey": "ManagementLicense",
-        "ParameterValue": "R80.10-BYOL"
+        "ParameterValue": "R80.30-BYOL"
     },
     {
         "ParameterKey": "NumberOfAZs",
