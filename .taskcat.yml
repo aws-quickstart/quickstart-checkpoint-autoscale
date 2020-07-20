@@ -2,6 +2,36 @@ project:
   name: quickstart-checkpoint-autoscale
   owner: quickstart-eng@amazon.com
   package_lambda: false
+  parameters:
+    AdminAddressCIDR: 10.0.0.0/16
+    AvailabilityZones: $[alfred_getaz_2]
+    Certificate: ""
+    GatewayAddresses: 10.0.0.0/16
+    GatewaysBlades: "On"
+    GatewaysInstanceType: c5.xlarge
+    GatewaysLicense: R80.30-BYOL
+    GatewaysMaxSize: "10"
+    GatewaysMinSize: "2"
+    GatewaysPolicy: Standard
+    GatewaysSIC: $[alfred_genpass_8]
+    KeyPairName: $[alfred_getkeypair]
+    ManagementLicense: R80.30-BYOL
+    NumberOfAZs: "2"
+    PrivateSubnetCidrA: 10.0.1.0/24
+    PrivateSubnetCidrB: 10.0.3.0/24
+    PrivateSubnetCidrC: 10.0.5.0/24
+    PrivateSubnetCidrD: 10.0.7.0/24
+    Protocol: HTTP
+    PublicSubnetCidrA: 10.0.0.0/24
+    PublicSubnetCidrB: 10.0.2.0/24
+    PublicSubnetCidrC: 10.0.4.0/24
+    PublicSubnetCidrD: 10.0.6.0/24
+    ServersAMI: ""
+    ServersDeploy: "No"
+    ServicePort: ""
+    VpcCidr: 10.0.0.0/16
+    QSS3BucketName: $[taskcat_autobucket]
+    QSS3BucketRegion: $[taskcat_current_region]
   regions:
   - ap-northeast-1
   - ap-northeast-2
@@ -22,39 +52,9 @@ project:
 tests:
   checkpoint-alb-mgmt:
     parameters:
-      AdminAddressCIDR: 10.0.0.0/16
-      AvailabilityZones: $[alfred_getaz_2]
-      Certificate: ""
       ExternalLoadBalancerType: Application Load Balancer
-      GatewayAddresses: 10.0.0.0/16
-      GatewaysBlades: "On"
-      GatewaysInstanceType: c5.xlarge
-      GatewaysLicense: R80.30-BYOL
-      GatewaysMaxSize: "10"
-      GatewaysMinSize: "2"
-      GatewaysPolicy: Standard
-      GatewaysSIC: $[alfred_genpass_8]
-      KeyPairName: $[alfred_getkeypair]
-      ManagementDeploy: "Yes"
-      ManagementInstanceType: m5.xlarge
-      ManagementLicense: R80.30-BYOL
-      NumberOfAZs: "2"
-      PrivateSubnetCidrA: 10.0.1.0/24
-      PrivateSubnetCidrB: 10.0.3.0/24
-      PrivateSubnetCidrC: 10.0.5.0/24
-      PrivateSubnetCidrD: 10.0.7.0/24
-      Protocol: HTTP
-      PublicSubnetCidrA: 10.0.0.0/24
-      PublicSubnetCidrB: 10.0.2.0/24
-      PublicSubnetCidrC: 10.0.4.0/24
-      PublicSubnetCidrD: 10.0.6.0/24
-      ServersAMI: ""
-      ServersDeploy: "No"
-      ServicePort: ""
+      ManagementDeploy: "No"
       Tag: TaskCat1
-      VpcCidr: 10.0.0.0/16
-      QSS3BucketName: $[taskcat_autobucket]
-      QSS3BucketRegion: $[taskcat_current_region]
     regions:
     - ap-northeast-1
     - ap-northeast-2
@@ -72,39 +72,11 @@ tests:
     s3_bucket: ''
     template: templates/checkpoint-autoscale-master.yaml
   checkpoint-nlb-no-mgmt:
-      parameters:
-      AdminAddressCIDR: 10.0.0.0/16
-      AvailabilityZones: $[alfred_getaz_2]
-      Certificate: ""
+    parameters:
       ExternalLoadBalancerType: Network Load Balancer
-      GatewayAddresses: 10.0.0.0/16
-      GatewaysBlades: "On"
-      GatewaysInstanceType: c5.xlarge
-      GatewaysLicense: R80.30-BYOL
-      GatewaysMaxSize: "10"
-      GatewaysMinSize: "2"
-      GatewaysPolicy: Standard
-      GatewaysSIC: $[alfred_genpass_8]
-      KeyPairName: $[alfred_getkeypair]
-      ManagementDeploy: "No"
-      ManagementLicense: R80.30-BYOL
-      NumberOfAZs: "2"
-      PrivateSubnetCidrA: 10.0.1.0/24
-      PrivateSubnetCidrB: 10.0.3.0/24
-      PrivateSubnetCidrC: 10.0.5.0/24
-      PrivateSubnetCidrD: 10.0.7.0/24
-      Protocol: HTTP
-      PublicSubnetCidrA: 10.0.0.0/24
-      PublicSubnetCidrB: 10.0.2.0/24
-      PublicSubnetCidrC: 10.0.4.0/24
-      PublicSubnetCidrD: 10.0.6.0/24
-      ServersAMI: ""
-      ServersDeploy: "No"
-      ServicePort: ""
+      ManagementDeploy: "Yes"
+      ManagementInstanceType: "m5.xlarge"
       Tag: TaskCat2
-      VpcCidr: 10.0.0.0/16
-      QSS3BucketName: $[taskcat_autobucket]
-      QSS3BucketRegion: $[taskcat_current_region]
     regions:
     - ap-northeast-1
     - ap-northeast-2
