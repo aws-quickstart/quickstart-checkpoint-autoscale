@@ -421,7 +421,7 @@ Resources:
   VPCStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: __URL__/utils/vpc.yaml
+      TemplateURL: https://s3.amazonaws.com/cgi-cfts/utils/vpc.yaml
       Parameters:
         AvailabilityZones: !Join [',' , !Ref AvailabilityZones]
         NumberOfAZs: !Ref NumberOfAZs
@@ -437,7 +437,7 @@ Resources:
   MainStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: __URL__/autoscale/qs-autoscale.yaml
+      TemplateURL: https://s3.amazonaws.com/cgi-cfts/autoscale/qs-autoscale.yaml
       Parameters:
         VPC: !GetAtt VPCStack.Outputs.VPCID
         KeyName: !Ref KeyName

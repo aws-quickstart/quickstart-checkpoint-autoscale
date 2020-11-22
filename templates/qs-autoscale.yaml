@@ -383,7 +383,7 @@ Resources:
   SecurityGatewaysStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: __URL__/autoscale/autoscale.yaml
+      TemplateURL: https://s3.amazonaws.com/cgi-cfts/autoscale/autoscale.yaml
       Parameters:
         VPC: !Ref VPC
         GatewaysSubnets: !Join [',', !Ref GatewaysSubnets]
@@ -418,7 +418,7 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Condition: DeployManagement
     Properties:
-      TemplateURL: __URL__/management/management.yaml
+      TemplateURL: https://s3.amazonaws.com/cgi-cfts/management/management.yaml
       Parameters:
         VPC: !Ref VPC
         ManagementSubnet: !Select [0, !Ref GatewaysSubnets]
@@ -506,7 +506,7 @@ Resources:
     Condition: DeployServers
     DependsOn: [InternalLBTargetGroup, InternalSecurityGroup]
     Properties:
-      TemplateURL: __URL__/autoscale/custom-autoscale.yaml
+      TemplateURL: https://s3.amazonaws.com/cgi-cfts/autoscale/custom-autoscale.yaml
       Parameters:
         VPC: !Ref VPC
         ServersSubnets: !Join [',', !Ref ServersSubnets]
