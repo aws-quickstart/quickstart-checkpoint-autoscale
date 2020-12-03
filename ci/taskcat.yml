@@ -23,7 +23,7 @@ global:
 tests:
   checkpoint-alb-mgmt:
     parameter_input: checkpoint-autoscale-alb.json
-    template_file: checkpoint-autoscale-master.yaml
+    template_file: qs-autoscale-master.template.yaml
     regions:
       - ap-northeast-1
       - ap-northeast-2
@@ -40,7 +40,7 @@ tests:
       - us-west-2
   checkpoint-nlb-no-mgmt:
     parameter_input: checkpoint-autoscale-nlb.json
-    template_file: checkpoint-autoscale-master.yaml
+    template_file: qs-autoscale-master.template.yaml
     regions:
       - ap-northeast-1
       - ap-northeast-2
@@ -57,11 +57,11 @@ tests:
       - us-west-2
   checkpoint-alb-paris:
     parameter_input: checkpoint-autoscale-alb-paris.json
-    template_file: checkpoint-autoscale-master.yaml
+    template_file: qs-autoscale-master.template.yaml
     regions:
       - eu-west-3
   checkpoint-nlb-paris:
     parameter_input: checkpoint-autoscale-nlb-paris.json
-    template_file: checkpoint-autoscale-master.yaml
+    template_file: qs-autoscale-master.template.yaml
     regions:
       - eu-west-3
