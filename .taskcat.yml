@@ -3,18 +3,18 @@ project:
   owner: quickstart-eng@amazon.com
   package_lambda: false
   parameters:
-    AdminAddressCIDR: 10.0.0.0/16
+    AdminCIDR: 10.0.0.0/16
     AvailabilityZones: $[alfred_getaz_2]
     Certificate: ""
-    GatewayAddresses: 10.0.0.0/16
-    GatewaysBlades: "On"
+    GatewaysAddresses: 10.0.0.0/16
+    GatewaysBlades: 'true'
     GatewaysInstanceType: c5.xlarge
     GatewaysLicense: R80.30-BYOL
     GatewaysMaxSize: "10"
     GatewaysMinSize: "2"
     GatewaysPolicy: Standard
-    GatewaysSIC: $[alfred_genpass_8]
-    KeyPairName: $[alfred_getkeypair]
+    GatewaySICKey: $[alfred_genpass_8]
+    KeyName: $[alfred_getkeypair]
     ManagementLicense: R80.30-BYOL
     NumberOfAZs: "2"
     PrivateSubnetCidrA: 10.0.1.0/24
@@ -26,10 +26,14 @@ project:
     PublicSubnetCidrB: 10.0.2.0/24
     PublicSubnetCidrC: 10.0.4.0/24
     PublicSubnetCidrD: 10.0.6.0/24
-    ServersAMI: ""
-    ServersDeploy: "No"
+    ServerAMI: ""
+    ServersDeploy: "false"
     ServicePort: ""
     VpcCidr: 10.0.0.0/16
+    CloudWatch: 'true'
+    EnableInstanceConnect: 'false'
+    AllowUploadDownload: 'true'
+    EnableVolumeEncryption: 'true'
     QSS3BucketName: $[taskcat_autobucket]
     QSS3BucketRegion: $[taskcat_current_region]
   regions:
@@ -53,7 +57,7 @@ tests:
   checkpoint-alb-mgmt:
     parameters:
       ExternalLoadBalancerType: Application Load Balancer
-      ManagementDeploy: "No"
+      ManagementDeploy: "false"
       Tag: TaskCat1
     regions:
     - ap-northeast-1
@@ -70,11 +74,11 @@ tests:
     - us-west-1
     - us-west-2
     s3_bucket: ''
-    template: templates/checkpoint-autoscale-master.yaml
+    template: templates/qs-autoscale-main.template.yaml
   checkpoint-nlb-no-mgmt:
     parameters:
       ExternalLoadBalancerType: Network Load Balancer
-      ManagementDeploy: "Yes"
+      ManagementDeploy: "true"
       ManagementInstanceType: "m5.xlarge"
       Tag: TaskCat2
     regions:
@@ -92,4 +96,4 @@ tests:
     - us-west-1
     - us-west-2
     s3_bucket: ''
-    template: templates/checkpoint-autoscale-master.yaml
+    template: templates/qs-autoscale-main.template.yaml
