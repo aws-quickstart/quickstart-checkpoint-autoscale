@@ -1,0 +1,2496 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Deploy a Check Point CloudGuard IaaS Security Gateway Auto Scaling Group, an external ALB/NLB, and optionally a Security Management Server and a web server Auto Scaling Group in a new VPC. (qs-1ofn34qmh)
+Metadata:
+  AWS::CloudFormation::Interface: 
+    ParameterGroups:
+      - Label:
+          default: Network Configuration
+        Parameters:
+          - AvailabilityZones
+          - NumberOfAZs
+          - VPCCIDR
+          - PublicSubnet1CIDR
+          - PublicSubnet2CIDR
+          - PublicSubnet3CIDR
+          - PublicSubnet4CIDR
+          - CreatePrivateSubnets
+          - PrivateSubnet1CIDR
+          - PrivateSubnet2CIDR
+          - PrivateSubnet3CIDR
+          - PrivateSubnet4CIDR
+          - CreateTgwSubnets
+          - TgwSubnet1CIDR
+          - TgwSubnet2CIDR
+          - TgwSubnet3CIDR
+          - TgwSubnet4CIDR
+      - Label:
+          default: General Settings
+        Parameters:
+          - KeyName
+          - EnableVolumeEncryption
+          - EnableInstanceConnect
+          - AllowUploadDownload
+          - ProvisionTag
+          - LoadBalancersType
+          - ALBProtocol
+          - NLBProtocol
+          - Certificate
+          - ServicePort
+          - AdminEmail
+      - Label:
+          default: Check Point CloudGuard IaaS Security Gateways Auto Scaling Group Configuration
+        Parameters:
+          - GatewayInstanceType
+          - GatewaysMinSize
+          - GatewaysMaxSize
+          - GatewayVersion
+          - GatewayPasswordHash
+          - GatewaySICKey
+          - CloudWatch
+          - GatewayManagement
+          - GatewaysTargetGroups
+          - VolumeSizeSecurityGatewayStack
+          - ControlGatewayOverPrivateOrPublicAddress
+          - ELBType
+          - ELBClients
+          - ELBPort
+          - ShellSecurityGatewayStack
+
+      - Label:
+          default: Check Point CloudGuard IaaS Security Management Server Configuration
+        Parameters:
+          - ManagementDeploy
+          - ManagementHostname
+          - ManagementInstanceType
+          - ManagementVersion
+          - ManagementPasswordHash
+          - ManagementPermissions
+          - ManagementPredefinedRole
+          - ManagementSICKey
+          - NTPPrimary
+          - NTPSecondary
+          - GatewaysPolicy
+          - GatewaysBlades
+          - AdminCIDR
+          - GatewaysAddresses
+          - AllocatePublicAddress
+          - Permissions
+          - PrimaryManagement
+          - STSRoles
+          - TrustedAccount
+          - VolumeSizeManagementStack
+          - ShellManagementStack
+      - Label:
+          default: Web Servers Auto Scaling Group Configuration
+        Parameters:
+          - ServersDeploy
+          - ServerInstanceType
+          - ServerAMI
+          - ServerName
+          - ServersMaxSize
+          - ServersMinSize
+          - ServersTargetGroups
+          - SourceSecurityGroup
+    ParameterLabels:
+      AvailabilityZones:
+        default: Availability Zones
+      NumberOfAZs:
+        default: Number of AZs
+      VPCCIDR:
+        default: VPC CIDR
+      PublicSubnet1CIDR:
+        default: Public Subnet 1
+      PublicSubnet2CIDR:
+        default: Public Subnet 2
+      PublicSubnet3CIDR:
+        default: Public Subnet 3
+      PublicSubnet4CIDR:
+        default: Public Subnet 4
+      CreatePrivateSubnets:
+        default: Create private subnets
+      PrivateSubnet1CIDR:
+        default: Private Subnet 1
+      PrivateSubnet2CIDR:
+        default: Private Subnet 2
+      PrivateSubnet3CIDR:
+        default: Private Subnet 3
+      PrivateSubnet4CIDR:
+        default: Private Subnet 4
+      CreateTgwSubnets:
+        default: Create TGW subnets
+      TgwSubnet1CIDR:
+        default: TGW subnet 1 CIDR
+      TgwSubnet2CIDR:
+        default: TGW subnet 2 CIDR
+      TgwSubnet3CIDR:
+        default: TGW subnet 3 CIDR
+      TgwSubnet4CIDR:
+        default: TGW subnet 4 CIDR
+      KeyName:
+        default: Key name
+      EnableVolumeEncryption:
+        default: Enable environment volume encryption
+      EnableInstanceConnect:
+        default: Enable AWS Instance Connect
+      AllowUploadDownload:
+        default: Allow upload & download
+      ProvisionTag:
+        default: Auto Provision tag
+      LoadBalancersType:
+        default: Load Balancers
+      ALBProtocol:
+        default: ALB Protocol
+      NLBProtocol:
+        default: NLB Protocol
+      Certificate:
+        default: HTTPS certificate
+      ServicePort:
+        default: Custom service port
+      AdminEmail:
+        default: Email address
+      GatewayInstanceType:
+        default: Gateways instance type
+      GatewaysMinSize:
+        default: Minimum group size
+      GatewaysMaxSize:
+        default: Maximum group size
+      GatewayVersion:
+        default: Gateways version & license
+      GatewayPasswordHash:
+        default: Gateways password hash
+      GatewaySICKey:
+        default: Gateways SIC key
+      CloudWatch:
+        default: CloudWatch metrics
+      ManagementDeploy:
+        default: Deploy Management Server
+      ManagementHostname:
+        default: Management hostname
+      ManagementPermissions:
+        default: IAM role
+      ManagementPredefinedRole:
+        default: Existing IAM role name
+      ManagementInstanceType:
+        default: Management instance type
+      ManagementVersion:
+        default: Management version & license
+      ManagementPasswordHash:
+        default: Management password hash
+      ManagementSICKey:
+        default: SIC key
+      NTPPrimary:
+        default: Primary NTP server
+      NTPSecondary:
+        default: Secondary NTP server
+      GatewaysPolicy:
+        default: Security Policy
+      GatewaysBlades:
+        default: Default Blades
+      AdminCIDR:
+        default: Administrator addresses
+      GatewaysAddresses:
+        default: Gateways addresses
+      ServersDeploy:
+        default: Deploy servers
+      ServerInstanceType:
+        default: Servers instance type
+      ServerAMI:
+        default: AMI ID
+      AllocatePublicAddress:
+        default: Allocate an Elastic IP
+      GatewayManagement:
+        default: Gateways management
+      GatewaysTargetGroups:
+        default: Gateways target groups
+      Permissions:
+        default: IAM role
+      PrimaryManagement:
+        default: Primary management
+      STSRoles:
+        default: STS roles
+      ServerName:
+        default: Instance Name
+      ServersMinSize:
+        default: Minimum group size
+      ServerMaxSize:
+        default: Maximum group size
+      ServersTargetGroups:
+        default: Target Groups
+      SourceSecurityGroup:
+        default: Source Security Group
+      TrustedAccount:
+        default: Trusted Account ID
+      VolumeSizeManagementStack:
+        default: Management Volume Size
+      VolumeSizeSecurityGatewayStack:
+        default: Security Gateway Volume Size
+      ControlGatewayOverPrivateOrPublicAddress:
+        default: Gateways addresses
+      ELBType:
+        default: Proxy type
+      ELBPort:
+        default: Proxy port
+      ELBClients:
+        default: Allowed proxy clients
+
+Parameters:
+  AvailabilityZones:
+    Description: List of Availability Zones (AZs) to use for the subnets in the VPC. Select at least two
+    Type: List<AWS::EC2::AvailabilityZone::Name>
+    MinLength: 2
+  NumberOfAZs:
+    Description: Number of Availability Zones to use in the VPC. This must match your selections in the list of Availability Zones parameter
+    Type: Number
+    Default: 2
+    MinValue: 2
+    MaxValue: 4
+  VPCCIDR:
+    Description: CIDR block for the VPC
+    Type: String
+    Default: 10.0.0.0/16
+    AllowedPattern: '^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(1[6-9]|2[0-8]))$'
+    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28
+  PublicSubnet1CIDR:
+    Description: CIDR block for public subnet 1 located in the 1st Availability Zone. If you choose to deploy a Security Management Server it will be deployed in this subnet
+    Type: String
+    Default: 10.0.10.0/24
+    AllowedPattern: '^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(1[6-9]|2[0-8]))$'
+    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28
+  PublicSubnet2CIDR:
+    Description: CIDR block for public subnet 2 located in the 2nd Availability Zone
+    Type: String
+    Default: 10.0.20.0/24
+    AllowedPattern: '^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(1[6-9]|2[0-8]))$'
+    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28
+  PublicSubnet3CIDR:
+    Description: CIDR block for public subnet 3 located in the 3rd Availability Zone
+    Type: String
+    Default: 10.0.30.0/24
+    AllowedPattern: '^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(1[6-9]|2[0-8]))$'
+    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28
+  PublicSubnet4CIDR:
+    Description: CIDR block for public subnet 4 located in the 4th Availability Zone
+    Type: String
+    Default: 10.0.40.0/24
+    AllowedPattern: '^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(1[6-9]|2[0-8]))$'
+    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28
+  PrivateSubnet1CIDR:
+    Description: CIDR block for private subnet 1 located in the 1st Availability Zone
+    Type: String
+    Default: 10.0.11.0/24
+    AllowedPattern: '^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(1[6-9]|2[0-8]))$'
+    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28
+  PrivateSubnet2CIDR:
+    Description: CIDR block for private subnet 2 located in the 2nd Availability Zone
+    Type: String
+    Default: 10.0.21.0/24
+    AllowedPattern: '^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(1[6-9]|2[0-8]))$'
+    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28
+  PrivateSubnet3CIDR:
+    Description: CIDR block for private subnet 3 located in the 3rd Availability Zone
+    Type: String
+    Default: 10.0.31.0/24
+    AllowedPattern: '^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(1[6-9]|2[0-8]))$'
+    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28
+  PrivateSubnet4CIDR:
+    Description: CIDR block for private subnet 4 located in the 4th Availability Zone
+    Type: String
+    Default: 10.0.41.0/24
+    AllowedPattern: '^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(1[6-9]|2[0-8]))$'
+    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28
+  KeyName:
+    Description: The EC2 Key Pair to allow SSH access to the instances
+    Type: AWS::EC2::KeyPair::KeyName
+    MinLength: 1
+    ConstraintDescription: Must be the name of an existing EC2 KeyPair
+  EnableVolumeEncryption:
+    Description: Encrypt Environment instances volume with default AWS KMS key
+    Type: String
+    Default: 'true'
+    AllowedValues:
+      - 'true'
+      - 'false'
+  EnableInstanceConnect:
+    Description: Enable SSH connection over AWS web console
+    Type: String
+    Default: 'false'
+    AllowedValues:
+      - 'true'
+      - 'false'
+  AllowUploadDownload:
+    Description: Automatically download Blade Contracts and other important data. Improve product experience by sending data to Check Point
+    Type: String
+    Default: 'true'
+    AllowedValues:
+      - 'true'
+      - 'false'
+  ProvisionTag:
+    Description: The tag is used by the Security Management Server to automatically provision the Security Gateways. Must be up to 12 alphanumeric characters and unique for each Quick Start deployment
+    Type: String
+    Default: quickstart
+    AllowedPattern: '^[a-zA-Z0-9-]{1,12}$'
+    ConstraintDescription: The tag must be up to 12 alphanumeric character
+  LoadBalancersType:
+    Description: Use Network Load Balancer if you wish to preserve the source IP address and Application Load Balancer if you wish to perform SSL Offloading
+    Type: String
+    Default: Network Load Balancer
+    AllowedValues:
+      - Network Load Balancer
+      - Application Load Balancer
+  ALBProtocol:
+    Description: The protocol to use on the Application Load Balancer. If Network Load Balancer was selected this section will be ignored
+    Type: String
+    Default: HTTP
+    AllowedValues:
+      - HTTP
+      - HTTPS
+  NLBProtocol:
+    Description: The protocol to use on the Network Load Balancer. If Application Load Balancer was selected this section will be ignored
+    Type: String
+    Default: TCP
+    AllowedValues:
+      - TCP
+      - TLS
+      - UDP
+      - TCP_UDP
+  Certificate:
+    Description: Amazon Resource Name (ARN) of an HTTPS Certificate, ignored if the selected protocol is HTTP
+    Type: String
+    AllowedPattern: '^(arn:aws:[a-z]+::[0-9]{12}:server-certificate/[a-zA-Z0-9-]*)?$'
+    ConstraintDescription: 'Must be a valid Amazon Resource Name (ARN), for example: arn:aws:iam::123456789012:server-certificate/web-server-certificate'
+  ServicePort:
+    Description: 'The external Load Balancer listens to this port. Leave this field blank to use default ports: 80 for HTTP and 443 for HTTPS'
+    Type: String
+    AllowedPattern: '^([0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])?$'
+    ConstraintDescription: Custom service port must be a number between 0 and 65535
+  AdminEmail:
+    Description: Notifications about scaling events will be sent to this email address (optional)
+    Type: String
+    Default: ''
+    AllowedPattern: '^(([a-zA-Z0-9_\-\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([a-zA-Z0-9\-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?))?$'
+    ConstraintDescription: Must be a valid email address
+  GatewayInstanceType:
+    Description: The EC2 instance type for the Security Gateways
+    Type: String
+    Default: c5.xlarge
+    AllowedValues:
+      - c5.large
+      - c5.xlarge
+      - c5.2xlarge
+      - c5.4xlarge
+      - c5.9xlarge
+      - c5.18xlarge
+      - c5n.large
+      - c5n.xlarge
+      - c5n.2xlarge
+      - c5n.4xlarge
+      - c5n.9xlarge
+      - c5n.18xlarge
+    ConstraintDescription: Must be a valid EC2 instance type
+  GatewaysMinSize:
+    Description: The minimal number of Security Gateways
+    Type: Number
+    Default: 2
+    MinValue: 1
+  GatewaysMaxSize:
+    Description: The maximal number of Security Gateways
+    Type: Number
+    Default: 10
+    MinValue: 1
+  GatewayVersion:
+    Description: The version and license to install on the Security Gateways
+    Type: String
+    Default: R80.40-PAYG-NGTP-GW
+    AllowedValues:
+      - R80.40-BYOL-GW
+      - R80.40-PAYG-NGTP-GW
+      - R80.40-PAYG-NGTX-GW
+      - R81-BYOL-GW
+      - R81-PAYG-NGTP-GW
+      - R81-PAYG-NGTX-GW
+  GatewayPasswordHash:
+    Description: Admin user's password hash (use command "openssl passwd -1 PASSWORD" to get the PASSWORD's hash) (optional)
+    Type: String
+    Default: ''
+    AllowedPattern: '^[\$\./a-zA-Z0-9]*$'
+    NoEcho: true
+  GatewaySICKey:
+    Description: The Secure Internal Communication key creates trusted connections between Check Point components. Choose a random string consisting of at least 8 alphanumeric characters
+    Type: String
+    AllowedPattern: '^[a-zA-Z0-9]{8,}$'
+    ConstraintDescription: Secure Internal Communication activation key should contain only alpha numeric characters and be at least 8 characters long
+    NoEcho: true
+  CloudWatch:
+    Description: Report Check Point specific CloudWatch metrics
+    Type: String
+    Default: 'false'
+    AllowedValues:
+      - 'true'
+      - 'false'
+  ManagementDeploy:
+    Description: Select 'false' to use an existing Security Management Server or to deploy one later and to ignore the other parameters of this section
+    Type: String
+    Default: 'true'
+    AllowedValues:
+      - 'true'
+      - 'false'
+  ManagementInstanceType:
+    Description: The EC2 instance type of the Security Management Server
+    Type: String
+    Default: m5.xlarge
+    AllowedValues:
+      - m5.large
+      - m5.xlarge
+      - m5.2xlarge
+      - m5.4xlarge
+      - m5.12xlarge
+      - m5.24xlarge
+    ConstraintDescription: Must be a valid EC2 instance type
+  ManagementVersion:
+    Description: The version and license to install on the Security Management Server
+    Type: String
+    Default: R80.40-PAYG-MGMT
+    AllowedValues:
+      - R80.40-BYOL-MGMT
+      - R80.40-PAYG-MGMT
+      - R81-BYOL-MGMT
+      - R81-PAYG-MGMT
+  ManagementPasswordHash:
+    Description: Admin user's password hash (use command "openssl passwd -1 PASSWORD" to get the PASSWORD's hash) (optional)
+    Type: String
+    Default: ''
+    AllowedPattern: '^[\$\./a-zA-Z0-9]*$'
+    NoEcho: true
+  GatewaysPolicy:
+    Description: The name of the Security Policy package to be installed on the gateways in the Security Gateways Auto Scaling group
+    Type: String
+    Default: Standard
+    MinLength: 1
+  GatewaysBlades:
+    Description: Turn on the Intrusion Prevention System, Application Control, Anti-Virus and Anti-Bot Blades (these and additional Blades can be manually turned on or off later)
+    Type: String
+    Default: 'true'
+    AllowedValues:
+      - 'true'
+      - 'false'
+  AdminCIDR:
+    Description: Allow web, SSH, and graphical clients only from this network to communicate with the Security Management Server
+    Type: String
+    AllowedPattern: '^(([0-9]{1,3}\.){3}[0-9]{1,3}/([0-9]|[1-2][0-9]|3[0-2]))?$'
+  GatewaysAddresses:
+    Description: Allow gateways only from this network to communicate with the Security Management Server
+    Type: String
+    AllowedPattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}/([0-9]|[1-2][0-9]|3[0-2])$'
+  ServersDeploy:
+    Description: Select 'true' to deploy web servers and an internal Application Load Balancer. If you select 'false' the other parameters of this section will be ignored
+    Type: String
+    Default: 'false'
+    AllowedValues:
+      - 'true'
+      - 'false'
+  ServerInstanceType:
+    Description: The EC2 instance type for the web servers
+    Type: String
+    Default: t3.micro
+    AllowedValues:
+      - t3.nano
+      - t3.micro
+      - t3.small
+      - t3.medium
+      - t3.large
+      - t3.xlarge
+      - t3.2xlarge
+    ConstraintDescription: Must be a valid EC2 instance type
+  ServerAMI:
+    Description: The Amazon Machine Image ID of a preconfigured web server (e.g. ami-0dc7dc63)
+    Type: String
+    AllowedPattern: '^(ami-(([0-9a-f]{8})|([0-9a-f]{17})))?$'
+    ConstraintDescription: Amazon Machine Image ID must be in the form ami-xxxxxxxx or ami-xxxxxxxxxxxxxxxxx
+  #begin VPC (vpc.yaml)
+  CreatePrivateSubnets:
+    Description: Set to false to create only public subnets. If false, the CIDR parameters
+      for ALL private subnets will be ignored.
+    Type: String
+    Default: 'true'
+    AllowedValues:
+      - 'true'
+      - 'false'
+  CreateTgwSubnets:
+    Description: Set true for creating designated subnets for VPC TGW attachments. If false,
+      the CIDR parameters for the TGW subnets will be ignored.
+    Type: String
+    Default: 'false'
+    AllowedValues:
+      - 'true'
+      - 'false'
+  TgwSubnet1CIDR:
+    Description: CIDR block for TGW subnet 1 located in Availability Zone 1
+    Type: String
+    Default: 10.0.12.0/24
+    AllowedPattern: '^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(1[6-9]|2[0-8]))$'
+    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28
+  TgwSubnet2CIDR:
+    Description: CIDR block for TGW subnet 2 located in Availability Zone 2
+    Type: String
+    Default: 10.0.22.0/24
+    AllowedPattern: '^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(1[6-9]|2[0-8]))$'
+    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28
+  TgwSubnet3CIDR:
+    Description: CIDR block for TGW subnet 3 located in Availability Zone 3
+    Type: String
+    Default: 10.0.32.0/24
+    AllowedPattern: '^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(1[6-9]|2[0-8]))$'
+    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28
+  TgwSubnet4CIDR:
+    Description: CIDR block for TGW subnet 4 located in Availability Zone 4
+    Type: String
+    Default: 10.0.42.0/24
+    AllowedPattern: '^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(1[6-9]|2[0-8]))$'
+    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28
+  #end VPC (vpc.yaml)
+  #begin SecurityGatewayStack (autoscale.yaml)
+  ELBPort:
+    Type: Number
+    Default: 8080
+  #end SecurityGatewayStack (autoscale.yaml)
+  #begin ManagementStack (management.yaml)
+  AllocatePublicAddress:
+    Description: Allocate an elastic IP for the Management
+    Type: String
+    Default: 'true'
+    AllowedValues:
+      - 'true'
+      - 'false'
+  ManagementPermissions:
+    Description: IAM role to attach to the instance profile of the Management Server
+    Type: String
+    Default: Create with read permissions
+    AllowedValues:
+      - None (configure later)
+      - Use existing (specify an existing IAM role name)
+      - Create with assume role permissions (specify an STS role ARN)
+      - Create with read permissions
+      - Create with read-write permissions
+  GatewayManagement:
+    Description: Select 'Over the internet' if any of the gateways you wish to manage
+      are not directly accessed via their private IP address
+    Type: String
+    Default: Locally managed
+    AllowedValues:
+      - Locally managed
+      - Over the internet
+  ManagementSICKey:
+    Description: >-
+      Mandatory only if deploying a secondary Management Server, the Secure Internal
+      Communication key creates trusted connections between Check Point components.
+      Choose a random string consisting of at least 8 alphanumeric characters
+    Type: String
+    Default: ''
+    AllowedPattern: '(|[a-zA-Z0-9]{8,})'
+    ConstraintDescription: Can be empty if this is a primary Management Server. Otherwise,
+      at least 8 alpha numeric characters
+    NoEcho: true
+  ManagementPredefinedRole:
+    Description: A predefined IAM role to attach to the instance profile. Ignored
+      if IAM role is not set to 'Use existing'
+    Type: String
+    Default: ''
+  NTPPrimary:
+    Description: (optional)
+    Type: String
+    Default: 169.254.169.123
+    AllowedPattern: '[\.a-zA-Z0-9\-]*'
+  NTPSecondary:
+    Description: (optional)
+    Type: String
+    Default: 0.pool.ntp.org
+    AllowedPattern: '[\.a-zA-Z0-9\-]*'
+  ManagementHostname:
+    Description: (optional)
+    Type: String
+    Default: mgmt-aws
+    AllowedPattern: '^([A-Za-z]([-0-9A-Za-z]{0,61}[0-9A-Za-z])?|)$'
+    ConstraintDescription: A valid hostname label or an empty string
+  PrimaryManagement:
+    Description: Determines if this is the primary Management Server or not
+    Type: String
+    Default: 'true'
+    AllowedValues:
+      - 'true'
+      - 'false'
+  VolumeSizeManagementStack:
+    Type: Number
+    Default: 100
+    MinValue: 100
+  ShellManagementStack:
+    Description: Change the admin shell to enable advanced command line configuration
+    Type: String
+    Default: /etc/cli.sh
+    AllowedValues:
+      - /etc/cli.sh
+      - /bin/bash
+      - /bin/csh
+      - /bin/tcsh
+  #end ManagementStack (management.yaml)
+  #begin SecurityGatewayStack (autoscale.yaml)
+  ELBType:
+    Type: String
+    Default: none
+    AllowedValues:
+      - none
+      - internal
+      - internet-facing
+  GatewaysTargetGroups:
+    Description: A list of Target Groups to associate with the Auto Scaling
+      group (comma separated list of ARNs, without spaces) (optional)
+    Type: String
+    Default: ''
+  ControlGatewayOverPrivateOrPublicAddress:
+    Description: Determines if the gateways are provisioned using their private or public address
+    Type: String
+    Default: private
+    AllowedValues:
+      - private
+      - public
+  VolumeSizeSecurityGatewayStack:
+    Type: Number
+    Default: 100
+    MinValue: 100
+  ELBClients:
+    Type: String
+    Default: 0.0.0.0/0
+    AllowedPattern: '^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})$'
+  ShellSecurityGatewayStack:
+    Description: Change the admin shell to enable advanced command line configuration
+    Type: String
+    Default: /etc/cli.sh
+    AllowedValues:
+      - /etc/cli.sh
+      - /bin/bash
+      - /bin/csh
+      - /bin/tcsh
+  #end SecurityGatewayStack (autoscale.yaml)
+  #begin ManagementRoleStack (cme-iam-role.yaml)
+  Permissions:
+    Type: String
+    Default: Create with read permissions
+    AllowedValues:
+      - Create with read permissions
+      - Create with read-write permissions
+      - Create with assume role permissions (specify an STS role ARN)
+  STSRoles:
+    Description: The IAM role will be able to assume these STS Roles (comma separated list of ARNs, without spaces)
+    Type: String
+    Default: ''
+  TrustedAccount:
+    Description: A 12 digits number that represents the ID of a trusted account. IAM users in this account will be able assume the IAM role and receive the permissions attached to it.
+    Type: String
+    Default: ''
+    AllowedPattern: '^([0-9]{12})|$'
+  #end ManagementRoleStack (cme-iam-role.yaml)
+  #begin ServersStack (custom-autoscale.yaml)
+  ServersTargetGroups:
+    Description: An optional list of Target Groups to associate with the Auto Scaling group (comma separated list of ARNs, without spaces)
+    Type: String
+    Default: ''
+  SourceSecurityGroup:
+    Description: The ID of Security Group from which access will be allowed to the instances in this Auto Scaling group
+    Type: String
+    Default: ''
+  ServersMinSize:
+    Description: The minimal number of servers in the Auto Scaling group
+    Type: Number
+    Default: 2
+    MinValue: 1
+  ServersMaxSize:
+    Description: The maximal number of servers in the Auto Scaling group
+    Type: Number
+    Default: 10
+    MinValue: 1
+  ServerName:
+    Description: The servers name tag
+    Type: String
+    Default: Server
+  #end ServersStack (custom-autoscale.yaml)
+
+
+Conditions:
+  4AZs: !Equals [!Ref NumberOfAZs, 4]
+  3AZs: !Or [!Equals [!Ref NumberOfAZs, 3], !Condition 4AZs]
+  ALB: !Equals [!Ref LoadBalancersType, Application Load Balancer]
+  #begin VPC (vpc.yaml)
+  PrivateSubnets: !Equals [!Ref CreatePrivateSubnets, 'true']
+  3AZsPrivateSubnets: !And [!Condition PrivateSubnets, !Condition 3AZs]
+  4AZsPrivateSubnets: !And [!Condition PrivateSubnets, !Condition 4AZs]
+  TgwSubnets: !Equals [!Ref CreateTgwSubnets, 'true']
+  3AZsTgwSubnets: !And [!Condition TgwSubnets, !Condition 3AZs]
+  4AZsTgwSubnets: !And [!Condition TgwSubnets, !Condition 4AZs]
+  #end VPC (vpc.yaml)
+  #begin MainStack (qs-autoscale.template.yaml)
+  DeployManagement: !Equals [!Ref ManagementDeploy, 'true']
+  DeployServers: !Equals [!Ref ServersDeploy, 'true']
+  NLB: !Not [!Condition ALB]
+  EncryptedProtocol: !Or
+    - !And [!Condition ALB, !Equals [ALBProtocol, HTTPS]]
+    - !And [!Condition NLB, !Equals [NLBProtocol, TLS]]
+  ProvidedPort: !Not [!Equals [!Ref ServicePort, '']]
+  #end MainStack (qs-autoscale.template.yaml)
+  #begin ManagementStack (management.yaml)
+  EIP: !And
+    - !Equals [!Ref AllocatePublicAddress, 'true']
+    - !Condition DeployManagement
+  ManageOverInternet: !Equals [!Ref GatewayManagement, Over the internet]
+  ManageOverInternetAndEIP: !And [!Condition EIP, !Condition ManageOverInternet]
+  CreateRole: !Or
+    - !Equals [!Ref ManagementPermissions, Create with assume role permissions (specify an STS role ARN)]
+    - !Equals [!Ref ManagementPermissions, Create with read permissions]
+    - !Equals [!Ref ManagementPermissions, Create with read-write permissions]
+  UseRole: !And
+    - !Not [!Equals [!Ref ManagementPermissions, None (configure later)]]
+    - !Condition DeployManagement
+  NoSIC: !Equals [!Ref ManagementSICKey, '']
+  #end ManagementStack (management.yaml)
+  #begin SecurityGatewayStack (autoscale.yaml)
+  ProvidedAdminEmail: !Not [!Equals [!Ref AdminEmail, '']]
+  ProvidedTargetGroups: !Not [!Equals [!Ref GatewaysTargetGroups, '']]
+  EnableCloudWatch: !Equals [!Ref CloudWatch, 'true']
+  CreateELB: !Not [!Equals [!Ref ELBType, none]]
+  #end SecurityGatewayStack (autoscale.yaml)
+  #begin ManagementRoleStack (cme-iam-role.yaml)
+  AllowReadPermissions: !Or
+  - !Equals [!Ref Permissions, Create with read permissions]
+  - !Equals [!Ref Permissions, Create with read-write permissions]
+  AllowWritePermissions: !Equals [!Ref Permissions, Create with read-write permissions]
+  ProvidedSTSRoles: !Not [!Equals [!Ref STSRoles, '']]
+  NotProvidedTrustedAccount: !Equals ['', !Ref TrustedAccount]
+  ProvidedTrustedAccount: !Not [!Condition NotProvidedTrustedAccount]
+  #end ManagementRoleStack (cme-iam-role.yaml)
+  #begin ServersStack (custom-autoscale.yaml)
+  ProvidedTargetGroupsServersStack: !Not [!Equals [!Ref ServersTargetGroups, '']]
+  NotProvidedSecurityGroup: !Equals [!Ref SourceSecurityGroup, '']
+  #end ServersStack (custom-autoscale.yaml)
+
+Mappings:
+  #begin AMI (amis.yaml)
+  ConverterMap:
+    BYOL:
+      Value: R7730BYOL
+    PAYG:
+      Value: R7730PAYGNGTP
+    R77.30-BYOL:
+      Value: R7730BYOL
+    R77.30-PAYG-NGTP:
+      Value: R7730PAYGNGTP
+    R80:
+      Value: R80
+    R80.10-BYOL:
+      Value: R8010BYOL
+    R80.10-PAYG-NGTP:
+      Value: R8010PAYGNGTP
+    R80.10-PAYG-MGMT:
+      Value: R8010PAYGMGMT
+    R80.10-BYOL-GW:
+      Value: R8010BYOLGW
+    R80.10-PAYG-NGTP-GW:
+      Value: R8010PAYGNGTPGW
+    R80.10-PAYG-NGTX-GW:
+      Value: R8010PAYGNGTXGW
+    R80.20-BYOL-MGMT:
+      Value: R8020BYOLMGMT
+    R80.20-PAYG-MGMT:
+      Value: R8020PAYGMGMT
+    R80.20-BYOL-GW:
+      Value: R8020BYOLGW
+    R80.20-PAYG-NGTP-GW:
+      Value: R8020PAYGNGTPGW
+    R80.20-PAYG-NGTX-GW:
+      Value: R8020PAYGNGTXGW
+    R80.30-BYOL-MGMT:
+      Value: R8030BYOLMGMT
+    R80.30-PAYG-MGMT:
+      Value: R8030PAYGMGMT
+    R80.30-BYOL-GW:
+      Value: R8030BYOLGW
+    R80.30-PAYG-NGTP-GW:
+      Value: R8030PAYGNGTPGW
+    R80.30-PAYG-NGTX-GW:
+      Value: R8030PAYGNGTXGW
+    R80.40-PAYG-NGTP:
+      Value: R8040PAYGNGTP
+    R80.40-BYOL-MGMT:
+      Value: R8040BYOLMGMT
+    R80.40-PAYG-MGMT:
+      Value: R8040PAYGMGMT
+    R80.40-BYOL-GW:
+      Value: R8040BYOLGW
+    R80.40-PAYG-NGTP-GW:
+      Value: R8040PAYGNGTPGW
+    R80.40-PAYG-NGTX-GW:
+      Value: R8040PAYGNGTXGW
+    R81-PAYG-NGTP:
+      Value: R81PAYGNGTP
+    R81-BYOL-MGMT:
+      Value: R81BYOLMGMT
+    R81-PAYG-MGMT:
+      Value: R81PAYGMGMT
+    R81-BYOL-GW:
+      Value: R81BYOLGW
+    R81-PAYG-NGTP-GW:
+      Value: R81PAYGNGTPGW
+    R81-PAYG-NGTX-GW:
+      Value: R81PAYGNGTXGW
+  RegionMap:
+    af-south-1:
+      R8030BYOLGW: ami-06b29e1b466dfab03
+      R8030BYOLMGMT: ami-09b7759935c2aed0e
+      R8030PAYGMGMT: ami-09e9586f9e4b00969
+      R8030PAYGNGTPGW: ami-0e1960cf9653633a4
+      R8030PAYGNGTXGW: ami-0b9de6f7f4c76264c
+      R8040BYOLGW: ami-019362677488fab31
+      R8040BYOLMGMT: ami-06b22f780571287c3
+      R8040PAYGMGMT: ami-01c7aedede9f0f199
+      R8040PAYGNGTP: ami-0359036d4b1ce8ddf
+      R8040PAYGNGTPGW: ami-0073710c1973ed172
+      R8040PAYGNGTXGW: ami-0abf3c761b98d5246
+      R81BYOLGW: ami-07dbf839920c95bd9
+      R81BYOLMGMT: ami-0208165b1525893af
+      R81PAYGMGMT: ami-04c90d1ecf0ed7981
+      R81PAYGNGTP: ami-0f928ac382a82f523
+      R81PAYGNGTPGW: ami-0a138a211a733481f
+      R81PAYGNGTXGW: ami-0f41ef826cacd497d
+    ap-east-1:
+      R8020BYOLGW: ami-de9be2af
+      R8020BYOLMGMT: ami-e3067d92
+      R8020PAYGMGMT: ami-ee057e9f
+      R8020PAYGNGTPGW: ami-fc94ed8d
+      R8020PAYGNGTXGW: ami-5f443c2e
+      R8030BYOLGW: ami-013bd78a57dc6c665
+      R8030BYOLMGMT: ami-094f2419491c7aee2
+      R8030PAYGMGMT: ami-009eabcc965ab2158
+      R8030PAYGNGTPGW: ami-046483a6f309e5793
+      R8030PAYGNGTXGW: ami-035fbe66c8e237b33
+      R8040BYOLGW: ami-09fea46ed05f51e0e
+      R8040BYOLMGMT: ami-0aea74a88de7a68f1
+      R8040PAYGMGMT: ami-0001dabe3f784b173
+      R8040PAYGNGTP: ami-000409f6895d7ddba
+      R8040PAYGNGTPGW: ami-074ddead103529058
+      R8040PAYGNGTXGW: ami-0766c9835b0839814
+      R81BYOLGW: ami-085a50af32816748a
+      R81BYOLMGMT: ami-06152d1e0b7da627a
+      R81PAYGMGMT: ami-015a66d001c9eafc0
+      R81PAYGNGTP: ami-091a5b33beee6df34
+      R81PAYGNGTPGW: ami-0c3a99e4cbb9029e3
+      R81PAYGNGTXGW: ami-0024236901e88ed1e
+    ap-northeast-1:
+      R7730BYOL: ami-62dea804
+      R7730PAYGNGTP: ami-16dfa970
+      R80: ami-baccb2dd
+      R8010BYOL: ami-03b171c04f1a2b667
+      R8010BYOLGW: ami-01733527b6ed34b77
+      R8010PAYGMGMT: ami-089f2a71639b800da
+      R8010PAYGNGTP: ami-009b7d100548b52d7
+      R8010PAYGNGTPGW: ami-022b5fbf3b014333a
+      R8010PAYGNGTXGW: ami-07533055a2d3d7c9e
+      R8020BYOLGW: ami-04c278979cdcde217
+      R8020BYOLMGMT: ami-0f17b285accca6862
+      R8020PAYGMGMT: ami-0ad39d1aada8aa0c7
+      R8020PAYGNGTPGW: ami-08c2fbdbe73946ff2
+      R8020PAYGNGTXGW: ami-0314cd1c93e71d931
+      R8030BYOLGW: ami-0ebf956d67dffacdf
+      R8030BYOLMGMT: ami-07c261d0cf225e197
+      R8030PAYGMGMT: ami-0609c14c95c966ca9
+      R8030PAYGNGTPGW: ami-0697aeecfe075f635
+      R8030PAYGNGTXGW: ami-0664a1e87aedb28f8
+      R8040BYOLGW: ami-02b91c60eb0807f3e
+      R8040BYOLMGMT: ami-0dd8c74fc3dfd187a
+      R8040PAYGMGMT: ami-060a4c426168c4d5e
+      R8040PAYGNGTP: ami-0a14c66ac8a4e3744
+      R8040PAYGNGTPGW: ami-0b39d85f81fb84901
+      R8040PAYGNGTXGW: ami-06b23ebe4dbc1ad27
+      R81BYOLGW: ami-09200dde3ab633931
+      R81BYOLMGMT: ami-0f830da0f93add863
+      R81PAYGMGMT: ami-076283b8a928c88dc
+      R81PAYGNGTP: ami-0634e3f3eb50b13ff
+      R81PAYGNGTPGW: ami-08ee81784dff69c00
+      R81PAYGNGTXGW: ami-0596c544304b434b5
+    ap-northeast-2:
+      R7730BYOL: ami-e5b1138b
+      R7730PAYGNGTP: ami-74b6141a
+      R80: ami-d3d302bd
+      R8010BYOL: ami-07861c833126ee7d3
+      R8010BYOLGW: ami-00c10f7a335270f92
+      R8010PAYGMGMT: ami-00a975c02fe778029
+      R8010PAYGNGTP: ami-07d71e25ae8c42424
+      R8010PAYGNGTPGW: ami-0a375565bb42bf9a6
+      R8010PAYGNGTXGW: ami-00617bdd53d331eb4
+      R8020BYOLGW: ami-097c7847403a3920f
+      R8020BYOLMGMT: ami-076736817cfbcd7c1
+      R8020PAYGMGMT: ami-067a469f8d4bf291e
+      R8020PAYGNGTPGW: ami-0d2c45ce8157240ec
+      R8020PAYGNGTXGW: ami-04c9b29e62efbfa55
+      R8030BYOLGW: ami-0cec352a489251bb6
+      R8030BYOLMGMT: ami-002486c726ecb134d
+      R8030PAYGMGMT: ami-0d49f48791aea17b4
+      R8030PAYGNGTPGW: ami-0ec78efcf6e472594
+      R8030PAYGNGTXGW: ami-0cab5d28d6504764d
+      R8040BYOLGW: ami-012652d687597d384
+      R8040BYOLMGMT: ami-072071c8770f250ed
+      R8040PAYGMGMT: ami-046f37b9c0118341a
+      R8040PAYGNGTP: ami-032169479bc738943
+      R8040PAYGNGTPGW: ami-09c01afdbd44137e0
+      R8040PAYGNGTXGW: ami-00b163088cf43cb03
+      R81BYOLGW: ami-0b54d45b0548efa55
+      R81BYOLMGMT: ami-0c50521bb520b4b5b
+      R81PAYGMGMT: ami-09443821aa9c54a6f
+      R81PAYGNGTP: ami-0711de811b6bb73d3
+      R81PAYGNGTPGW: ami-02a07597a0eb8321d
+      R81PAYGNGTXGW: ami-0de36d1efdb60cab8
+    ap-northeast-3:
+      R8030BYOLGW: ami-01182c561a703dc01
+      R8030BYOLMGMT: ami-0650aa9379eb3587e
+      R8030PAYGMGMT: ami-083dba7b284f669b4
+      R8030PAYGNGTPGW: ami-02e06e6f516e724eb
+      R8030PAYGNGTXGW: ami-0b92e7f3d5b424734
+      R8040BYOLGW: ami-0fc0b9e2f4be18b17
+      R8040PAYGNGTP: ami-0c29b0a18442c4e4e
+      R8040PAYGNGTPGW: ami-0cc6e427b95404e2f
+      R8040PAYGNGTXGW: ami-074860937650a10d0
+      R81BYOLGW: ami-081f4a3f20d035644
+      R81BYOLMGMT: ami-0a113138f4966150b
+      R81PAYGNGTPGW: ami-0d1f7d9cb58bfea1e
+      R81PAYGNGTXGW: ami-0e47161fcef43cce5
+    ap-south-1:
+      R7730BYOL: ami-ef104280
+      R7730PAYGNGTP: ami-7412401b
+      R80: ami-54d7a13b
+      R8010BYOL: ami-0d70af9a3bf7ed166
+      R8010BYOLGW: ami-005813656f2cc2109
+      R8010PAYGMGMT: ami-0fc83d32e683d94f9
+      R8010PAYGNGTP: ami-0ca38a5ab32a32402
+      R8010PAYGNGTPGW: ami-0bdbc0c3c684b67da
+      R8010PAYGNGTXGW: ami-028a56db679aae09d
+      R8020BYOLGW: ami-04cadb01804793765
+      R8020BYOLMGMT: ami-0373d39ed8e2a4547
+      R8020PAYGMGMT: ami-08e59f7d8f19321c6
+      R8020PAYGNGTPGW: ami-02624d5f00eeb282b
+      R8020PAYGNGTXGW: ami-036b79a31e0f7c8de
+      R8030BYOLGW: ami-0f7164870b8aff552
+      R8030BYOLMGMT: ami-0614cad913d013239
+      R8030PAYGMGMT: ami-02d56b0649f154c98
+      R8030PAYGNGTPGW: ami-080897db5f9b7cc59
+      R8030PAYGNGTXGW: ami-007380d43d8483d61
+      R8040BYOLGW: ami-0cc2ab66fcd4c7218
+      R8040BYOLMGMT: ami-08e07d79dc8442a4b
+      R8040PAYGMGMT: ami-03888bef722fdc0de
+      R8040PAYGNGTP: ami-095b9853278456376
+      R8040PAYGNGTPGW: ami-0fd45669942f498b1
+      R8040PAYGNGTXGW: ami-0c5d8d522042d5c3b
+      R81BYOLGW: ami-07105adc5f093ae53
+      R81BYOLMGMT: ami-0c92ef99b443023ef
+      R81PAYGMGMT: ami-0e51c435c3b6d07af
+      R81PAYGNGTP: ami-07bfc331b1844c511
+      R81PAYGNGTPGW: ami-030f8d37677334916
+      R81PAYGNGTXGW: ami-0717dd3c0b9f8e34a
+    ap-southeast-1:
+      R7730BYOL: ami-ecf8b990
+      R7730PAYGNGTP: ami-95fbbae9
+      R80: ami-4dd3792e
+      R8010BYOL: ami-07760a643c67c74e9
+      R8010BYOLGW: ami-01df2f1c8a432f0bd
+      R8010PAYGMGMT: ami-095b04b5b63ea4abc
+      R8010PAYGNGTP: ami-0e726234e298325f8
+      R8010PAYGNGTPGW: ami-023f0cf2bfc594e49
+      R8010PAYGNGTXGW: ami-01899ce6a0aff8a62
+      R8020BYOLGW: ami-077131e03ee155037
+      R8020BYOLMGMT: ami-0aace42e71cc045a3
+      R8020PAYGMGMT: ami-05fe62173e8a32170
+      R8020PAYGNGTPGW: ami-0b465f9ba2e93f2eb
+      R8020PAYGNGTXGW: ami-07982feb9d5f02ab9
+      R8030BYOLGW: ami-057f6d3a84123f36b
+      R8030BYOLMGMT: ami-025e7b625b666d492
+      R8030PAYGMGMT: ami-0a40ee1d6b308427f
+      R8030PAYGNGTPGW: ami-0804f119eb6b6b8e1
+      R8030PAYGNGTXGW: ami-0bf78bf64ba1b3a19
+      R8040BYOLGW: ami-0d450226e905e1ea2
+      R8040BYOLMGMT: ami-0973f035e26431465
+      R8040PAYGMGMT: ami-06a313b1df6c77067
+      R8040PAYGNGTP: ami-0d1426cae2ecabad2
+      R8040PAYGNGTPGW: ami-0c71b2a21154afbd9
+      R8040PAYGNGTXGW: ami-08a38df6cc296a873
+      R81BYOLGW: ami-08b8c77239ec5ff9b
+      R81BYOLMGMT: ami-01481a6bf383b1339
+      R81PAYGMGMT: ami-0bb09de0d69621511
+      R81PAYGNGTP: ami-0f5d8e5a7b3cd275a
+      R81PAYGNGTPGW: ami-0caacb4800b72d74c
+      R81PAYGNGTXGW: ami-0b3a7ed304b007ab6
+    ap-southeast-2:
+      R7730BYOL: ami-e3728981
+      R7730PAYGNGTP: ami-56778c34
+      R80: ami-1a8d8979
+      R8010BYOL: ami-057c1ce8ef1c5c545
+      R8010BYOLGW: ami-03fe7ae0469b2be02
+      R8010PAYGMGMT: ami-045e1a116c83c5b6c
+      R8010PAYGNGTP: ami-0aa3f436612fc8303
+      R8010PAYGNGTPGW: ami-028638674c03bc856
+      R8010PAYGNGTXGW: ami-0158539021dc0b3b6
+      R8020BYOLGW: ami-0f4872cba7b3d8520
+      R8020BYOLMGMT: ami-01315a5548051c5a9
+      R8020PAYGMGMT: ami-0cb5a075174025ab6
+      R8020PAYGNGTPGW: ami-00ccc52d9a39e8213
+      R8020PAYGNGTXGW: ami-0f46b9f96931f3fd2
+      R8030BYOLGW: ami-0e3fa092a0fae99c1
+      R8030BYOLMGMT: ami-0ff794dca950856a6
+      R8030PAYGMGMT: ami-01ddb49f1e60e4d5c
+      R8030PAYGNGTPGW: ami-0d0a602eee66009d9
+      R8030PAYGNGTXGW: ami-04570b8b58d13c482
+      R8040BYOLGW: ami-0e70b2a3180f77acd
+      R8040BYOLMGMT: ami-0f01dfaa90e5a24aa
+      R8040PAYGMGMT: ami-05a84d3299048ca3b
+      R8040PAYGNGTP: ami-0dce9b819cc066c2f
+      R8040PAYGNGTPGW: ami-00f3e2bb0b563571b
+      R8040PAYGNGTXGW: ami-066bf4a42e798aac2
+      R81BYOLGW: ami-02dbcf10ce2018a29
+      R81BYOLMGMT: ami-0b486aa92259c018d
+      R81PAYGMGMT: ami-0456d749d3ba3bbf6
+      R81PAYGNGTP: ami-0648a1ada86648b74
+      R81PAYGNGTPGW: ami-0ad467ab5f53c4ca1
+      R81PAYGNGTXGW: ami-0847586cf2ba40381
+    ca-central-1:
+      R7730BYOL: ami-4faa2e2b
+      R7730PAYGNGTP: ami-5ea82c3a
+      R80: ami-09ec516d
+      R8010BYOL: ami-088b18e35373a7f00
+      R8010BYOLGW: ami-004f7b86744ca27ac
+      R8010PAYGMGMT: ami-0639bf109ec7eea53
+      R8010PAYGNGTP: ami-03dd17eaeffc101a5
+      R8010PAYGNGTPGW: ami-0386853b322be7389
+      R8010PAYGNGTXGW: ami-0b6aca50c60adc5f3
+      R8020BYOLGW: ami-0fa35bf3cbb283cc9
+      R8020BYOLMGMT: ami-025d9f859062b9e23
+      R8020PAYGMGMT: ami-037991f7332217dcd
+      R8020PAYGNGTPGW: ami-068837ad2434bbff6
+      R8020PAYGNGTXGW: ami-00e1cdc4afa3cc45d
+      R8030BYOLGW: ami-0502b1408b88a4ed5
+      R8030BYOLMGMT: ami-02d056c86e83cad06
+      R8030PAYGMGMT: ami-0c5d9c8e1baf3c5d9
+      R8030PAYGNGTPGW: ami-0e683cba1869968df
+      R8030PAYGNGTXGW: ami-07f2eabf9ff85a1c3
+      R8040BYOLGW: ami-0a2e0a73e7f35781f
+      R8040BYOLMGMT: ami-0913ea67e9da5b22c
+      R8040PAYGMGMT: ami-0d5ab3638c2dc1b5e
+      R8040PAYGNGTP: ami-02114219e6340717b
+      R8040PAYGNGTPGW: ami-0006976ee5ae23daa
+      R8040PAYGNGTXGW: ami-0e569459c554cd76f
+      R81BYOLGW: ami-04aac55df5e8c2c76
+      R81BYOLMGMT: ami-0bbb0976c0e9ce8b2
+      R81PAYGMGMT: ami-005d8725e61dfef70
+      R81PAYGNGTP: ami-060bd538bf2d37d5d
+      R81PAYGNGTPGW: ami-0ab29c016e7b00f0f
+      R81PAYGNGTXGW: ami-013d265b9bcf333dc
+    eu-central-1:
+      R7730BYOL: ami-98f397f7
+      R7730PAYGNGTP: ami-a1f195ce
+      R80: ami-1cb77873
+      R8010BYOL: ami-0408826efa12e9aa8
+      R8010BYOLGW: ami-08909417a335f2cc6
+      R8010PAYGMGMT: ami-01d678ffb4f4cbced
+      R8010PAYGNGTP: ami-065126c92c0fbb5c4
+      R8010PAYGNGTPGW: ami-0613f0114c9ba42f1
+      R8010PAYGNGTXGW: ami-0096fb48b37a4eb59
+      R8020BYOLGW: ami-05c1cd8fcc05d02b9
+      R8020BYOLMGMT: ami-0d35e44e22e1efbbc
+      R8020PAYGMGMT: ami-0d7166fcb095f0bcc
+      R8020PAYGNGTPGW: ami-00400189047c609d0
+      R8020PAYGNGTXGW: ami-0e0f11dd7f27ae927
+      R8030BYOLGW: ami-0229e28fd5738b408
+      R8030BYOLMGMT: ami-07484884528d3bda1
+      R8030PAYGMGMT: ami-0493c3373c3302349
+      R8030PAYGNGTPGW: ami-01b65d4fcb8c39f65
+      R8030PAYGNGTXGW: ami-09aec59346c7172ff
+      R8040BYOLGW: ami-00f6ff2abf99d59eb
+      R8040BYOLMGMT: ami-077fd093c4d11cf8f
+      R8040PAYGMGMT: ami-072d6241919c78a3a
+      R8040PAYGNGTP: ami-0fecc8bcb4989756b
+      R8040PAYGNGTPGW: ami-072740a6545a9fbc6
+      R8040PAYGNGTXGW: ami-0348141a3df323fb4
+      R81BYOLGW: ami-0b2d81ed0f0b4d5c2
+      R81BYOLMGMT: ami-0acb0beb7a418255e
+      R81PAYGMGMT: ami-0cc730e653b667e42
+      R81PAYGNGTP: ami-03d56fe690b150ebe
+      R81PAYGNGTPGW: ami-01a18598825b2b758
+      R81PAYGNGTXGW: ami-0990d4be489815f3f
+    eu-north-1:
+      R8020BYOLGW: ami-b2b03ecc
+      R8020BYOLMGMT: ami-b4cf44ca
+      R8020PAYGMGMT: ami-b4c843ca
+      R8020PAYGNGTPGW: ami-34b13f4a
+      R8020PAYGNGTXGW: ami-66ec6418
+      R8030BYOLGW: ami-02ba7c055fb28a8d6
+      R8030BYOLMGMT: ami-06674ffa99f3c2e1f
+      R8030PAYGMGMT: ami-0781ad890c5d3b9b3
+      R8030PAYGNGTPGW: ami-0204a6b0308ee5114
+      R8030PAYGNGTXGW: ami-0f01220b4cdb585f9
+      R8040BYOLGW: ami-00051fdf88ee2f903
+      R8040BYOLMGMT: ami-0ec4f0bc66fb0a0cf
+      R8040PAYGMGMT: ami-080322c4ca052e0f2
+      R8040PAYGNGTP: ami-0329eb3ecd8719f21
+      R8040PAYGNGTPGW: ami-069f73879bf5b1ea1
+      R8040PAYGNGTXGW: ami-0f6d86ae5d0a85ebe
+      R81BYOLGW: ami-00d0664acb69687e0
+      R81BYOLMGMT: ami-02240c62674aac871
+      R81PAYGMGMT: ami-08242cd6fa150a547
+      R81PAYGNGTP: ami-0c6dca8f2786fb598
+      R81PAYGNGTPGW: ami-0336fc19ed5c73ca5
+      R81PAYGNGTXGW: ami-0e6b4045dca16b6ad
+    eu-south-1:
+      R8030BYOLGW: ami-0cb94ed206a6978a4
+      R8030BYOLMGMT: ami-066e7d36665dbc870
+      R8030PAYGMGMT: ami-042f8ee1ac6278f66
+      R8030PAYGNGTPGW: ami-006d1c0aa56e5ce4c
+      R8030PAYGNGTXGW: ami-0b0242cdfd36469ca
+      R8040BYOLGW: ami-07eb45e7fa6e6b1a3
+      R8040BYOLMGMT: ami-0a96ca1701d8cc498
+      R8040PAYGMGMT: ami-097b9af1032fd4481
+      R8040PAYGNGTP: ami-021b524b5a2005f2d
+      R8040PAYGNGTPGW: ami-0ed888785dfb1e9c1
+      R8040PAYGNGTXGW: ami-04ddd3e4dec80ab9d
+      R81BYOLGW: ami-0d7e14a0876e236ac
+      R81BYOLMGMT: ami-0769063b434141109
+      R81PAYGMGMT: ami-09ab858a551f43c51
+      R81PAYGNGTP: ami-0e8d54c4f7f48da3e
+      R81PAYGNGTPGW: ami-0083d4a3337d5d36f
+      R81PAYGNGTXGW: ami-0534c3df0215e72b9
+    eu-west-1:
+      R7730BYOL: ami-0d610a74
+      R7730PAYGNGTP: ami-0f600b76
+      R80: ami-7c66510f
+      R8010BYOL: ami-0afd8ac581c0910ba
+      R8010BYOLGW: ami-09dc5e32b9dfc0579
+      R8010PAYGMGMT: ami-0bc54382eefa16887
+      R8010PAYGNGTP: ami-08114474e1a2eeb8a
+      R8010PAYGNGTPGW: ami-029e2439e1e2776ae
+      R8010PAYGNGTXGW: ami-0f30ab8d92b94ddb9
+      R8020BYOLGW: ami-0f33541dab1ed55a3
+      R8020BYOLMGMT: ami-0ac513a63e08647e6
+      R8020PAYGMGMT: ami-012f09b535dabef2b
+      R8020PAYGNGTPGW: ami-000e62e5fab54198d
+      R8020PAYGNGTXGW: ami-0505fe24955ed29ea
+      R8030BYOLGW: ami-06e00befcb5c726ca
+      R8030BYOLMGMT: ami-06c7c6e28d45e7b10
+      R8030PAYGMGMT: ami-0caf21163ac92d334
+      R8030PAYGNGTPGW: ami-0ee69192337becdaa
+      R8030PAYGNGTXGW: ami-0dab0c14446318bfa
+      R8040BYOLGW: ami-0bdcd64f7a55b81e4
+      R8040BYOLMGMT: ami-0f7ba3ee4f181a16e
+      R8040PAYGMGMT: ami-08951b8369916f7fb
+      R8040PAYGNGTP: ami-0551f4d40637972a8
+      R8040PAYGNGTPGW: ami-042d0664c4c712e22
+      R8040PAYGNGTXGW: ami-0a02c492e68d8cdc9
+      R81BYOLGW: ami-0c537b0374a27abf2
+      R81BYOLMGMT: ami-0fed2096a26292669
+      R81PAYGMGMT: ami-073e072782957cf1c
+      R81PAYGNGTP: ami-0a36fa024ad9f424f
+      R81PAYGNGTPGW: ami-0f5630fb71a551175
+      R81PAYGNGTXGW: ami-0152b715aa0433ac1
+    eu-west-2:
+      R7730BYOL: ami-f1947196
+      R7730PAYGNGTP: ami-5896733f
+      R80: ami-d49c96b0
+      R8010BYOL: ami-037cbdfb453b16460
+      R8010BYOLGW: ami-022a1b343943e2290
+      R8010PAYGMGMT: ami-0a68722435a74b89a
+      R8010PAYGNGTP: ami-0bc5171032edd1240
+      R8010PAYGNGTPGW: ami-05259824ddeb5cb0a
+      R8010PAYGNGTXGW: ami-070c6359481b8d365
+      R8020BYOLGW: ami-0f646df97f3aca149
+      R8020BYOLMGMT: ami-074e6a2e97c5d38e7
+      R8020PAYGMGMT: ami-02aaa3e97e2ec504e
+      R8020PAYGNGTPGW: ami-09f1bda44f355ca32
+      R8020PAYGNGTXGW: ami-00bfdd98ad57b4833
+      R8030BYOLGW: ami-099281eea96f3edc8
+      R8030BYOLMGMT: ami-0d55248858600bc61
+      R8030PAYGMGMT: ami-0d7ceaffbe0ff15ad
+      R8030PAYGNGTPGW: ami-07f9e1ce7dbf531c2
+      R8030PAYGNGTXGW: ami-040f81e9576160246
+      R8040BYOLGW: ami-0ce10c48aaad908eb
+      R8040BYOLMGMT: ami-0d5ef5f28fd9a4ad3
+      R8040PAYGMGMT: ami-0d8f8bea5b7172d32
+      R8040PAYGNGTP: ami-08850be4b66402766
+      R8040PAYGNGTPGW: ami-070eb2878df8fed7f
+      R8040PAYGNGTXGW: ami-00f9761a717c273fa
+      R81BYOLGW: ami-0468dafed557d5054
+      R81BYOLMGMT: ami-0c37d76f877871f13
+      R81PAYGMGMT: ami-0e25a82188a6e6093
+      R81PAYGNGTP: ami-09f0fe4f2e6b72449
+      R81PAYGNGTPGW: ami-0a78cd59212255d2a
+      R81PAYGNGTXGW: ami-035e40ee462677e22
+    eu-west-3:
+      R8020BYOLGW: ami-0e3cf44775e0b27f3
+      R8020BYOLMGMT: ami-0ab52dca5ee654c3d
+      R8020PAYGMGMT: ami-0cfafe191cd830615
+      R8020PAYGNGTPGW: ami-0a984b71664d90df8
+      R8020PAYGNGTXGW: ami-0c0ad90b14474144b
+      R8030BYOLGW: ami-0a64066b0e2dbc593
+      R8030BYOLMGMT: ami-0a1d317f1b3e2df4c
+      R8030PAYGMGMT: ami-0474179c1a601eee0
+      R8030PAYGNGTPGW: ami-0bb4d69fd124e36ba
+      R8030PAYGNGTXGW: ami-070213cee0b5164f1
+      R8040BYOLGW: ami-0d909d508cdf03ca0
+      R8040BYOLMGMT: ami-0863d3fe9bccdfbf0
+      R8040PAYGMGMT: ami-097f2feaf7f9a56b4
+      R8040PAYGNGTP: ami-08d879683c059f7f8
+      R8040PAYGNGTPGW: ami-09471ec4a44a35754
+      R8040PAYGNGTXGW: ami-0bab238116a86d8f3
+      R81BYOLGW: ami-06f206f12ce5badbe
+      R81BYOLMGMT: ami-060c5fcb0edaa395c
+      R81PAYGMGMT: ami-0c619e6607b3c72a1
+      R81PAYGNGTP: ami-033949195a1a27100
+      R81PAYGNGTPGW: ami-09abdfff42f4e77c7
+      R81PAYGNGTXGW: ami-0ade90a3f2dfdc587
+    me-south-1:
+      R8020BYOLGW: ami-0ced3e9c36e09eb77
+      R8020BYOLMGMT: ami-05a7a580a372e9477
+      R8030BYOLGW: ami-0e9f93ac4e0f312ed
+      R8030BYOLMGMT: ami-022632ffc0c623df3
+      R8030PAYGMGMT: ami-00557a07800ea53d7
+      R8030PAYGNGTPGW: ami-0a4fff1846a703e82
+      R8030PAYGNGTXGW: ami-099ff231720cdf359
+      R8040BYOLGW: ami-0d519d8644b71a839
+      R8040BYOLMGMT: ami-0f3b748e7f1cff000
+      R8040PAYGMGMT: ami-081424a9e9ef740dc
+      R8040PAYGNGTP: ami-0e36dc7b23bd33796
+      R8040PAYGNGTPGW: ami-032c09da555499c5d
+      R8040PAYGNGTXGW: ami-02a69dec33216c333
+      R81BYOLGW: ami-0e2c5f15f444ae603
+      R81BYOLMGMT: ami-07d0b38f77cd737e0
+      R81PAYGMGMT: ami-0701351ff41aa127b
+      R81PAYGNGTP: ami-0533625e0b6147483
+      R81PAYGNGTPGW: ami-0345f3374ead0db60
+      R81PAYGNGTXGW: ami-0e444158de49108b3
+    sa-east-1:
+      R7730BYOL: ami-465a142a
+      R7730PAYGNGTP: ami-145f1178
+      R80: ami-902a4ffc
+      R8010BYOL: ami-07260e53cab503dba
+      R8010BYOLGW: ami-0eeacdb5e101d1cae
+      R8010PAYGMGMT: ami-0380f7acf92398c71
+      R8010PAYGNGTP: ami-0ce6ae0b05edf700d
+      R8010PAYGNGTPGW: ami-0ab0b9d970bbc1999
+      R8010PAYGNGTXGW: ami-07001708edf1a5d19
+      R8020BYOLGW: ami-0770cd3dd2f8015b4
+      R8020BYOLMGMT: ami-0954d03f5c4518a01
+      R8020PAYGMGMT: ami-0a8f3a430cfc237bb
+      R8020PAYGNGTPGW: ami-02c6354520206a247
+      R8020PAYGNGTXGW: ami-0de5ac9524daac7fa
+      R8030BYOLGW: ami-0011f06cc83912540
+      R8030BYOLMGMT: ami-037af2e3b2c8a6391
+      R8030PAYGMGMT: ami-0a8b157002c31ec14
+      R8030PAYGNGTPGW: ami-0bb3e45f169baa66f
+      R8030PAYGNGTXGW: ami-067b3aed1fadadb5c
+      R8040BYOLGW: ami-02668b0453e1fb609
+      R8040BYOLMGMT: ami-074107301427366f6
+      R8040PAYGMGMT: ami-06f885ed96bb65b47
+      R8040PAYGNGTP: ami-0518eb422513ea749
+      R8040PAYGNGTPGW: ami-098216152b9c1aeff
+      R8040PAYGNGTXGW: ami-08de59486c30817a4
+      R81BYOLGW: ami-08b1b72d20e16e34d
+      R81BYOLMGMT: ami-06b2fa42a6d906260
+      R81PAYGMGMT: ami-0cb5840699c2c761b
+      R81PAYGNGTP: ami-05f93c9e720ee7253
+      R81PAYGNGTPGW: ami-01cafd7cf47a337eb
+      R81PAYGNGTXGW: ami-03f3c762daa2e6edc
+    us-east-1:
+      R7730BYOL: ami-a5e7ecdf
+      R7730PAYGNGTP: ami-38e3e842
+      R80: ami-a66981b0
+      R8010BYOL: ami-0440ee050d3e88cfb
+      R8010BYOLGW: ami-0124c88f4fdd536ad
+      R8010PAYGMGMT: ami-08eade031a29d7baa
+      R8010PAYGNGTP: ami-091e783ea2c3140f5
+      R8010PAYGNGTPGW: ami-020c71af2189ed276
+      R8010PAYGNGTXGW: ami-0b57721fd1acec863
+      R8020BYOLGW: ami-0a6b1e46c8f177855
+      R8020BYOLMGMT: ami-0ea21bf4cc69253ba
+      R8020PAYGMGMT: ami-01fb6697db4809fb2
+      R8020PAYGNGTPGW: ami-0a3134e64a8bf4a72
+      R8020PAYGNGTXGW: ami-00a8424868cdd4279
+      R8030BYOLGW: ami-028a3409f57df941e
+      R8030BYOLMGMT: ami-0d31004128636a715
+      R8030PAYGMGMT: ami-0045f9224ef76963c
+      R8030PAYGNGTPGW: ami-00f61150a69ddbf7c
+      R8030PAYGNGTXGW: ami-0b1bf4196305b9a0d
+      R8040BYOLGW: ami-011d316ae57770ca3
+      R8040BYOLMGMT: ami-0865dc54a1e682fd7
+      R8040PAYGMGMT: ami-0ae363bf15b7f985f
+      R8040PAYGNGTP: ami-01a2bc89ef8e31ef7
+      R8040PAYGNGTPGW: ami-088274a10725cd358
+      R8040PAYGNGTXGW: ami-02fd3996d6626f511
+      R81BYOLGW: ami-0bac94cc7c76c91ef
+      R81BYOLMGMT: ami-0d416e1e154458dc8
+      R81PAYGMGMT: ami-0d864a29fb42c353a
+      R81PAYGNGTP: ami-09fa8596308fbdf0b
+      R81PAYGNGTPGW: ami-0ce13d79ea315d21f
+      R81PAYGNGTXGW: ami-095f333c582f88e83
+    us-east-2:
+      R7730BYOL: ami-da6652bf
+      R7730PAYGNGTP: ami-7d675318
+      R80: ami-5840653d
+      R8010BYOL: ami-0a10586bafc475f7d
+      R8010BYOLGW: ami-05cfbd1548bc51b40
+      R8010PAYGMGMT: ami-08627e9d094884b6d
+      R8010PAYGNGTP: ami-0d304c8b8895df14b
+      R8010PAYGNGTPGW: ami-0c6ed3eef7fc48b59
+      R8010PAYGNGTXGW: ami-0f9e87edcb3adeb6b
+      R8020BYOLGW: ami-07adfc0ccbd419b8d
+      R8020BYOLMGMT: ami-013d31a41cbace161
+      R8020PAYGMGMT: ami-0578aad5c8d5e117d
+      R8020PAYGNGTPGW: ami-0fe9baf33b2fc46c7
+      R8020PAYGNGTXGW: ami-034eb4193422cd09e
+      R8030BYOLGW: ami-0646ec6a6f8b0b8b0
+      R8030BYOLMGMT: ami-09c6cb4edc8023531
+      R8030PAYGMGMT: ami-0369809e86bd81e50
+      R8030PAYGNGTPGW: ami-0638dcd6f4acc260f
+      R8030PAYGNGTXGW: ami-0016604c39c1b9966
+      R8040BYOLGW: ami-099e5fcfafd4569b0
+      R8040BYOLMGMT: ami-03c6ea7babe9f7ea3
+      R8040PAYGMGMT: ami-0cc060b5ef5f3b06b
+      R8040PAYGNGTP: ami-0083af69047e3b268
+      R8040PAYGNGTPGW: ami-02e6e1c048d57e7ef
+      R8040PAYGNGTXGW: ami-0f01d98f8dff6b9a3
+      R81BYOLGW: ami-04e0c93e112ae7a56
+      R81BYOLMGMT: ami-0761fc119bbbc41c3
+      R81PAYGMGMT: ami-013121b081662e772
+      R81PAYGNGTP: ami-0a20b7649ffb0e8ce
+      R81PAYGNGTPGW: ami-00e94ca6fa0c99818
+      R81PAYGNGTXGW: ami-0900c956cc6f0fc50
+    us-gov-east-1:
+      R8030BYOLGW: ami-09bdfb9f7fc175f8f
+      R8030BYOLMGMT: ami-0b78a822d70b1c6da
+      R8030PAYGMGMT: ami-02ba4f4e1393af8d1
+      R8030PAYGNGTPGW: ami-0be9a19a5d09c0cc4
+      R8030PAYGNGTXGW: ami-0035b67d02b040de2
+      R8040BYOLGW: ami-011d316ae57770ca3
+      R8040BYOLMGMT: ami-033dc2d894a5327e8
+      R8040PAYGMGMT: ami-051a3fc7c2e4d2c3d
+      R8040PAYGNGTP: ami-08b385acfc509329c
+      R8040PAYGNGTPGW: ami-093856891ec6c9247
+      R8040PAYGNGTXGW: ami-04d1564bb0b730a22
+      R81BYOLGW: ami-03ba0116f3d5c7e31
+      R81BYOLMGMT: ami-0fb29d95b8d475f6e
+      R81PAYGMGMT: ami-0065bb50230939473
+      R81PAYGNGTP: ami-06d846f60caaf3d4d
+      R81PAYGNGTPGW: ami-013ba91b3a007475a
+      R81PAYGNGTXGW: ami-0c22acbba207575a4
+    us-gov-west-1:
+      R7730BYOL: ami-185dcb79
+      R7730PAYGNGTP: ami-7c5cca1d
+      R80: ami-0b269d6a
+      R8010BYOL: ami-30851351
+      R8010BYOLGW: ami-ed0f768c
+      R8010PAYGMGMT: ami-1b6f1f7a
+      R8010PAYGNGTP: ami-505cc231
+      R8010PAYGNGTPGW: ami-090b7268
+      R8010PAYGNGTXGW: ami-170d7476
+      R8020BYOLGW: ami-1091f071
+      R8020BYOLMGMT: ami-56e09a37
+      R8020PAYGMGMT: ami-53e09a32
+      R8020PAYGNGTPGW: ami-6693f207
+      R8020PAYGNGTXGW: ami-1d74057c
+      R8030BYOLGW: ami-00774598b1fafbd09
+      R8030BYOLMGMT: ami-0db2650d25fde5ee9
+      R8030PAYGMGMT: ami-029c414647c508723
+      R8030PAYGNGTPGW: ami-0659e90de790b2f7b
+      R8030PAYGNGTXGW: ami-0c74f4e5bcb0985ac
+      R8040BYOLGW: ami-0f3882870131bd9f4
+      R8040BYOLMGMT: ami-0194ccfd00ceb37d0
+      R8040PAYGMGMT: ami-00f4743a2187db5b0
+      R8040PAYGNGTP: ami-037c4f5458bcc3e1d
+      R8040PAYGNGTPGW: ami-0a4619dee2d9009d0
+      R8040PAYGNGTXGW: ami-09920717cee74c3cb
+      R81BYOLGW: ami-06a9b552fe445fd15
+      R81BYOLMGMT: ami-04fd33fb225f135da
+      R81PAYGMGMT: ami-00c3f66adabd86770
+      R81PAYGNGTP: ami-09b868c8e5d5aeb3b
+      R81PAYGNGTPGW: ami-087a571be59588f3c
+      R81PAYGNGTXGW: ami-008cd942b12482ac6
+    us-west-1:
+      R7730BYOL: ami-9a7779fa
+      R7730PAYGNGTP: ami-e9747a89
+      R80: ami-6b04560b
+      R8010BYOL: ami-05638ae2b353d70af
+      R8010BYOLGW: ami-080e8737fb2e85e8c
+      R8010PAYGMGMT: ami-0c573cf5a90e27c95
+      R8010PAYGNGTP: ami-0f859106e82110b41
+      R8010PAYGNGTPGW: ami-0c0537945b239e780
+      R8010PAYGNGTXGW: ami-054574dbcc5435088
+      R8020BYOLGW: ami-0ec9959052929d301
+      R8020BYOLMGMT: ami-0e9c3d76490288937
+      R8020PAYGMGMT: ami-056da473b095447b3
+      R8020PAYGNGTPGW: ami-066b154d2f9ac76dd
+      R8020PAYGNGTXGW: ami-034edfbdac10ba48a
+      R8030BYOLGW: ami-07d131c129a2ae0f5
+      R8030BYOLMGMT: ami-0d63aad977a6ac68c
+      R8030PAYGMGMT: ami-09ec4bf9624a8a623
+      R8030PAYGNGTPGW: ami-05b549c72c5137bb9
+      R8030PAYGNGTXGW: ami-0145d532d44927282
+      R8040BYOLGW: ami-0923da773a92651fb
+      R8040BYOLMGMT: ami-01109c28781e16baf
+      R8040PAYGMGMT: ami-0609e55db604b0796
+      R8040PAYGNGTP: ami-0d0fb0430b3b488a2
+      R8040PAYGNGTPGW: ami-096aa841ad74a4eb6
+      R8040PAYGNGTXGW: ami-0e57dfbdb2af4d558
+      R81BYOLGW: ami-06e4eb9dbd5bf4cda
+      R81BYOLMGMT: ami-0c83869bed275e6d4
+      R81PAYGMGMT: ami-0c04b656d9d04d86a
+      R81PAYGNGTP: ami-07e15eb826ed4b72b
+      R81PAYGNGTPGW: ami-0253b96e69818fdb4
+      R81PAYGNGTXGW: ami-0d24cb1313e0bfc0f
+    us-west-2:
+      R7730BYOL: ami-d972f5a1
+      R7730PAYGNGTP: ami-d77dfaaf
+      R80: ami-b7ff40d7
+      R8010BYOL: ami-0b80165993f1dbae5
+      R8010BYOLGW: ami-07336f4d55ecbfaa2
+      R8010PAYGMGMT: ami-0348f20190c8dc7f8
+      R8010PAYGNGTP: ami-0cbf6b8cb0655bcd6
+      R8010PAYGNGTPGW: ami-05a257fbb4f202fff
+      R8010PAYGNGTXGW: ami-0b4794847d7185dab
+      R8020BYOLGW: ami-073d8ecd3b05d4a86
+      R8020BYOLMGMT: ami-054b2881c9baced2e
+      R8020PAYGMGMT: ami-0467631c9da49090d
+      R8020PAYGNGTPGW: ami-0d941e5382ef77168
+      R8020PAYGNGTXGW: ami-0759646662b017119
+      R8030BYOLGW: ami-0082297b4ce6bdf94
+      R8030BYOLMGMT: ami-0f07bece57c1d7885
+      R8030PAYGMGMT: ami-09e6d71c2705576ab
+      R8030PAYGNGTPGW: ami-0f71964c9b9d4355e
+      R8030PAYGNGTXGW: ami-0ef1e8b716ee30298
+      R8040BYOLGW: ami-0dde7228d4161202d
+      R8040BYOLMGMT: ami-0fdb2ed9ea876cd9e
+      R8040PAYGMGMT: ami-08d367bc311526e40
+      R8040PAYGNGTP: ami-07ed75a046d236e78
+      R8040PAYGNGTPGW: ami-0a06b2ce9e5d854f9
+      R8040PAYGNGTXGW: ami-045d697f7ad64c72d
+      R81BYOLGW: ami-020047d1e8566ecce
+      R81BYOLMGMT: ami-06bc6a5f86f5c1d6d
+      R81PAYGMGMT: ami-091cd1fd25b0e390b
+      R81PAYGNGTP: ami-07f8c8c6a3261fdd3
+      R81PAYGNGTPGW: ami-0a535920501b23299
+      R81PAYGNGTXGW: ami-07b61b746560fdfa0
+  #end AMI (amis.yaml)
+
+Resources:
+  #begin VPC (vpc.yaml)
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VPCCIDR
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: !Ref 'AWS::StackName'
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Ref 'AWS::StackName'
+        - Key: Network
+          Value: Public
+  VPCGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref PublicSubnet1CIDR
+      AvailabilityZone: !Select [0, !Ref AvailabilityZones]
+      Tags:
+        - Key: Name
+          Value: Public subnet 1
+        - Key: Network
+          Value: Public
+      MapPublicIpOnLaunch: true
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref PublicSubnet2CIDR
+      AvailabilityZone: !Select [1, !Ref AvailabilityZones]
+      Tags:
+        - Key: Name
+          Value: Public subnet 2
+        - Key: Network
+          Value: Public
+      MapPublicIpOnLaunch: true
+  PublicSubnet3:
+    Condition: 3AZs
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref PublicSubnet3CIDR
+      AvailabilityZone: !Select [2, !Ref AvailabilityZones]
+      Tags:
+        - Key: Name
+          Value: Public subnet 3
+        - Key: Network
+          Value: Public
+      MapPublicIpOnLaunch: true
+  PublicSubnet4:
+    Condition: 4AZs
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref PublicSubnet4CIDR
+      AvailabilityZone: !Select [3, !Ref AvailabilityZones]
+      Tags:
+        - Key: Name
+          Value: Public subnet 4
+        - Key: Network
+          Value: Public
+      MapPublicIpOnLaunch: true
+  PublicSubnetRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: Public Subnets Route Table
+        - Key: Network
+          Value: Public
+  PublicSubnetRoute:
+    DependsOn: [VPCGatewayAttachment]
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PublicSubnetRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+  PublicSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet1
+      RouteTableId: !Ref PublicSubnetRouteTable
+  PublicSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet2
+      RouteTableId: !Ref PublicSubnetRouteTable
+  PublicSubnet3RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Condition: 3AZs
+    Properties:
+      SubnetId: !Ref PublicSubnet3
+      RouteTableId: !Ref PublicSubnetRouteTable
+  PublicSubnet4RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Condition: 4AZs
+    Properties:
+      SubnetId: !Ref PublicSubnet4
+      RouteTableId: !Ref PublicSubnetRouteTable
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Condition: PrivateSubnets
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref PrivateSubnet1CIDR
+      AvailabilityZone: !Select [0, !Ref AvailabilityZones]
+      Tags:
+        - Key: Name
+          Value: Private subnet 1
+        - Key: Network
+          Value: Private
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Condition: PrivateSubnets
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref PrivateSubnet2CIDR
+      AvailabilityZone: !Select [1, !Ref AvailabilityZones]
+      Tags:
+        - Key: Name
+          Value: Private subnet 2
+        - Key: Network
+          Value: Private
+  PrivateSubnet3:
+    Type: AWS::EC2::Subnet
+    Condition: 3AZsPrivateSubnets
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref PrivateSubnet3CIDR
+      AvailabilityZone: !Select [2, !Ref AvailabilityZones]
+      Tags:
+        - Key: Name
+          Value: Private subnet 3
+        - Key: Network
+          Value: Private
+  PrivateSubnet4:
+    Type: AWS::EC2::Subnet
+    Condition: 4AZsPrivateSubnets
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref PrivateSubnet4CIDR
+      AvailabilityZone: !Select [3, !Ref AvailabilityZones]
+      Tags:
+        - Key: Name
+          Value: Private subnet 4
+        - Key: Network
+          Value: Private
+  TgwSubnet1:
+    Condition: TgwSubnets
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref TgwSubnet1CIDR
+      AvailabilityZone: !Select [0, !Ref AvailabilityZones]
+      Tags:
+        - Key: Name
+          Value: TGW subnet 1
+        - Key: Network
+          Value: Private
+  TgwSubnet2:
+    Condition: TgwSubnets
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref TgwSubnet2CIDR
+      AvailabilityZone: !Select [1, !Ref AvailabilityZones]
+      Tags:
+        - Key: Name
+          Value: TGW subnet 2
+        - Key: Network
+          Value: Private
+  TgwSubnet3:
+    Condition: 3AZsTgwSubnets
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref TgwSubnet3CIDR
+      AvailabilityZone: !Select [2, !Ref AvailabilityZones]
+      Tags:
+        - Key: Name
+          Value: TGW subnet 3
+        - Key: Network
+          Value: Private
+  TgwSubnet4:
+    Condition: 4AZsTgwSubnets
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref TgwSubnet4CIDR
+      AvailabilityZone: !Select [3, !Ref AvailabilityZones]
+      Tags:
+        - Key: Name
+          Value: TGW subnet 4
+        - Key: Network
+          Value: Private
+  #end VPC (vpc.yaml)
+  #begin MainStack (qs-autoscale.template.yaml)
+  ExternalALBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Condition: ALB
+    Properties:
+      GroupDescription: External ALB security group
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: !If [ProvidedPort, !Ref ServicePort, !If [EncryptedProtocol, 443, 80]]
+          ToPort: !If [ProvidedPort, !Ref ServicePort, !If [EncryptedProtocol, 443, 80]]
+          CidrIp: 0.0.0.0/0
+  ExternalLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Type: !If [ALB, application, network]
+      Scheme: internet-facing
+      Subnets: !Split [',', !Join [',', [!Ref PublicSubnet1, !Ref PublicSubnet2, !If [3AZs, !Ref PublicSubnet3, !Ref 'AWS::NoValue'], !If [4AZs, !Ref PublicSubnet4, !Ref 'AWS::NoValue'] ] ]]
+      SecurityGroups:
+        - !If [ALB, !GetAtt ExternalALBSecurityGroup.GroupId, !Ref 'AWS::NoValue']
+  ExternalLBTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      VpcId: !Ref VPC
+      Protocol: !If [ALB, !Ref ALBProtocol, !Ref NLBProtocol]
+      Port: !If [EncryptedProtocol, 9443, 9080]
+  ExternalLBListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref ExternalLBTargetGroup
+      LoadBalancerArn: !Ref ExternalLoadBalancer
+      Protocol: !If [ALB, !Ref ALBProtocol, !Ref NLBProtocol]
+      Port: !If [ProvidedPort, !Ref ServicePort, !If [EncryptedProtocol, 443, 80]]
+  #begin SecurityGatewayStack (autoscale.yaml)
+  ChkpGatewayRole:
+    Type: AWS::IAM::Role
+    Condition: EnableCloudWatch
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: ChkpGatewayPoliocy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - cloudwatch:PutMetricData
+                Resource: '*'
+  InstanceProfileSecurityGatewayStack:
+    Type: AWS::IAM::InstanceProfile
+    Condition: EnableCloudWatch
+    Properties:
+      Path: /
+      Roles:
+        - !Ref ChkpGatewayRole
+  NotificationTopicSecurityGatewayStack:
+    Type: AWS::SNS::Topic
+    Condition: ProvidedAdminEmail
+    Properties:
+      Subscription:
+        - Endpoint: !Ref AdminEmail
+          Protocol: email
+  ElasticLoadBalancer:
+    Type: AWS::ElasticLoadBalancing::LoadBalancer
+    Condition: CreateELB
+    Properties:
+      CrossZone: true
+      Listeners:
+        - LoadBalancerPort: !Ref ELBPort
+          InstancePort: !Ref ELBPort
+          Protocol: TCP
+      HealthCheck:
+        Target: !Join [':', [TCP, !Ref ELBPort]]
+        HealthyThreshold: '3'
+        UnhealthyThreshold: '5'
+        Interval: '30'
+        Timeout: '5'
+      Scheme: !Ref ELBType
+      Subnets: !Split [',', !Join [',', [!Ref PublicSubnet1, !Ref PublicSubnet2, !If [3AZs, !Ref PublicSubnet3, !Ref 'AWS::NoValue'], !If [4AZs, !Ref PublicSubnet4, !Ref 'AWS::NoValue'] ] ]]
+      Policies:
+        - PolicyName: EnableProxyProtocol
+          PolicyType: ProxyProtocolPolicyType
+          Attributes:
+            - Name: ProxyProtocol
+              Value: true
+          InstancePorts:
+            - !Ref ELBPort
+      SecurityGroups:
+        - !Ref ELBSecurityGroup
+  PermissiveSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Join ['_', [!Ref 'AWS::StackName', PermissiveSecurityGroup]]
+      GroupDescription: Permissive security group
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: '-1'
+          CidrIp: 0.0.0.0/0
+  GatewayGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      VPCZoneIdentifier: !Split [',', !Join [',', [!Ref PublicSubnet1, !Ref PublicSubnet2, !If [3AZs, !Ref PublicSubnet3, !Ref 'AWS::NoValue'], !If [4AZs, !Ref PublicSubnet4, !Ref 'AWS::NoValue']] ]]
+      LaunchConfigurationName: !Ref GatewayLaunchConfig
+      MinSize: !Ref GatewaysMinSize
+      MaxSize: !Ref GatewaysMaxSize
+      LoadBalancerNames: !If [CreateELB, [!Ref ElasticLoadBalancer], !Ref 'AWS::NoValue']
+      TargetGroupARNs: !If [ProvidedTargetGroups, !Split [',', !Ref GatewaysTargetGroups], !Ref 'AWS::NoValue']
+      NotificationConfiguration: !If
+        - ProvidedAdminEmail
+        - TopicARN: !Ref NotificationTopicSecurityGatewayStack
+          NotificationTypes:
+            - autoscaling:EC2_INSTANCE_LAUNCH
+            - autoscaling:EC2_INSTANCE_LAUNCH_ERROR
+            - autoscaling:EC2_INSTANCE_TERMINATE
+            - autoscaling:EC2_INSTANCE_TERMINATE_ERROR
+        - !Ref 'AWS::NoValue'
+      Tags:
+        - Key: Name
+          Value: !Sub '${ProvisionTag}-security-gateway'
+          PropagateAtLaunch: true
+        - Key: x-chkp-tags
+          Value: !Join
+            - ':'
+            - - !Join ['=', [management, !Sub '${ProvisionTag}-management']]
+              - !Join ['=', [template, !Sub '${ProvisionTag}-template']]
+              - !Join ['=', [ip-address, !Ref ControlGatewayOverPrivateOrPublicAddress]]
+          PropagateAtLaunch: true
+  GatewayLaunchConfig:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      AssociatePublicIpAddress: true
+      KeyName: !Ref KeyName
+      ImageId: !FindInMap [RegionMap ,!Ref 'AWS::Region', Fn::FindInMap: [ConverterMap, !Ref GatewayVersion, Value]]
+      SecurityGroups:
+        - !Ref PermissiveSecurityGroup
+      InstanceType: !Ref GatewayInstanceType
+      BlockDeviceMappings:
+        - DeviceName: '/dev/xvda'
+          Ebs:
+            Encrypted: !Ref EnableVolumeEncryption
+            VolumeType: gp2
+            VolumeSize: !Ref VolumeSizeSecurityGatewayStack
+      IamInstanceProfile: !If [EnableCloudWatch, !Ref InstanceProfileSecurityGatewayStack, !Ref 'AWS::NoValue']
+      UserData:
+        'Fn::Base64':
+          !Join
+          - |+
+
+          - - '#!/bin/bash'
+            - 'set -e'
+            - 'logfile=/var/log/aws-user-data.log'
+            - '> ${logfile}'
+            - 'exec 1>>${logfile} 2>>${logfile}'
+            - 'echo -e "\nStarting user-data\n"'
+            - 'echo "Setting up parameters"'
+            - !Sub 'pwd_hash=''${GatewayPasswordHash}'' ; shell=${ShellSecurityGatewayStack} ; allow_info=${AllowUploadDownload} ; cw=${CloudWatch} ; eic=${EnableInstanceConnect}'
+            - !Join ['', ['sic="$(echo ', 'Fn::Base64': !Ref GatewaySICKey, ' | base64 -d)"']]
+            - !Join 
+              - ''
+              - - 'bootstrap="$(echo '
+                - 'Fn::Base64': 
+                    !Join
+                      - ';'
+                      - - 'echo -e "\nStarting Bootstrap script\n"'
+                        - 'echo "Adding quickstart identifier to cloud-version"'
+                        - 'template="autoscale_qs"'
+                        - 'cv_path="/etc/cloud-version"'
+                        - 'if test -f ${cv_path}; then sed -i ''/template_name/c\template_name: ''"${template}"'''' /etc/cloud-version; fi'
+                        - 'cv_json_path="/etc/cloud-version.json"'
+                        - 'cv_json_path_tmp="/etc/cloud-version-tmp.json"'
+                        - 'if test -f ${cv_json_path}; then cat ${cv_json_path} | jq ''.template_name = "''"${template}"''"'' > ${cv_json_path_tmp}; mv ${cv_json_path_tmp} ${cv_json_path}; fi'
+                        - 'echo -e "\nFinished Bootstrap script\n"'
+                - ' | base64 -d)"'
+
+            - 'echo "Updating cloud-version file"'
+            - 'template="autoscale"'
+            - 'cv_path="/etc/cloud-version"'
+            - 'echo "Updating cloud-version file"'
+            - 'if test -f ${cv_path}; then'
+            - '    echo template_name: ${template} >> ${cv_path}'
+            - '    echo template_version: 20210511 >> ${cv_path}'
+            - 'fi'
+            - 'cv_json_path="/etc/cloud-version.json"'
+            - 'cv_json_path_tmp="/etc/cloud-version-tmp.json"'
+            - 'if test -f ${cv_json_path}; then'
+            - '    cat ${cv_json_path} | jq ''.template_name = "''"${template}"''"'' | jq ''.template_version = "20210511"'' > ${cv_json_path_tmp}'
+            - '    mv ${cv_json_path_tmp} ${cv_json_path}'
+            - 'fi'
+            - 'if [[ -z ${pwd_hash} ]]; then'
+            - '    echo "Generating random password hash"'
+            - '    pwd_hash="$(dd if=/dev/urandom count=1 2>/dev/null | sha1sum | cut -c -28)"'
+            - 'fi'
+            - 'echo "Setting admin shell to ${shell}"'
+            - 'clish -c "set user admin shell ${shell}" -s'
+            - 'echo "Starting First Time Wizard"'
+            - 'blink_config -s "gateway_cluster_member=false&ftw_sic_key=${sic}&upload_info=${allow_info}&download_info=${allow_info}&admin_hash=${pwd_hash}"'
+            - 'echo "Setting admin password"'
+            - 'clish -c "set user admin password-hash ${pwd_hash}" -s'
+            - 'echo "Setting LocalGateway dynamic object"'
+            - 'addr="$(ip addr show dev eth0 | awk ''/inet/{print $2; exit}'' | cut -d / -f 1)"'
+            - 'dynamic_objects -n LocalGateway -r ${addr} ${addr} -a || true'
+            - 'if ${cw}; then'
+            - '    echo "Enabling CloudWatch"'
+            - '    echo {\"version\": \"1\"} > /etc/fw/conf/cloudwatch.json'
+            - '    cloudwatch start'
+            - 'fi'
+            - 'if ${eic}; then'
+            - '    echo "Enabling ec2 instance connect"'
+            - '    if [[ -d "/etc/ec2-instance-connect" ]]; then'
+            - '        ec2-instance-connect-config on'
+            - '    else'
+            - '        echo "Could not enable eic, /etc/ec2-instance-connect was not found"'
+            - '    fi'
+            - 'fi'
+            - 'if [[ -n ${bootstrap} ]]; then'
+            - '    echo "Invoking bootstrap script"'
+            - '    eval ${bootstrap}'
+            - 'fi'
+  GatewayScaleUpPolicy:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties:
+      AdjustmentType: ChangeInCapacity
+      AutoScalingGroupName: !Ref GatewayGroup
+      Cooldown: '300'
+      ScalingAdjustment: 1
+  GatewayScaleDownPolicy:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties:
+      AdjustmentType: ChangeInCapacity
+      AutoScalingGroupName: !Ref GatewayGroup
+      Cooldown: '300'
+      ScalingAdjustment: -1
+  CPUAlarmHighSecurityGatewayStack:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: Scale-up if CPU > 80% for 10 minutes
+      MetricName: CPUUtilization
+      Namespace: AWS/EC2
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 80
+      AlarmActions:
+        - !Ref GatewayScaleUpPolicy
+      Dimensions:
+        - Name: AutoScalingGroupName
+          Value: !Ref GatewayGroup
+      ComparisonOperator: GreaterThanThreshold
+  CPUAlarmLowSecurityGatewayStack:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: Scale-down if CPU < 60% for 10 minutes
+      MetricName: CPUUtilization
+      Namespace: AWS/EC2
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 60
+      AlarmActions:
+        - !Ref GatewayScaleDownPolicy
+      Dimensions:
+        - Name: AutoScalingGroupName
+          Value: !Ref GatewayGroup
+      ComparisonOperator: LessThanThreshold
+  ELBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Condition: CreateELB
+    Properties:
+      GroupDescription: ELB security group
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          CidrIp: !Ref ELBClients
+          FromPort: !Ref ELBPort
+          ToPort: !Ref ELBPort
+  #end SecurityGatewayStack (autoscale.yaml)
+  #begin ManagementStack (management.yaml)
+  ManagementReadyHandle:
+    Type: AWS::CloudFormation::WaitConditionHandle
+    Condition: EIP
+    Properties: {}
+  ManagementReadyCondition:
+    Type: AWS::CloudFormation::WaitCondition
+    Condition: EIP
+    DependsOn: ManagementInstance
+    Properties:
+      Handle: !Ref ManagementReadyHandle
+      Timeout: '1800'
+  ManagementSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Condition: DeployManagement
+    Properties:
+      GroupDescription: Management security group
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - CidrIp: !Ref GatewaysAddresses
+          IpProtocol: tcp
+          FromPort: 257
+          ToPort: 257
+        - CidrIp: !Ref GatewaysAddresses
+          IpProtocol: tcp
+          FromPort: 8211
+          ToPort: 8211
+        - CidrIp: !Ref GatewaysAddresses
+          IpProtocol: tcp
+          FromPort: 18191
+          ToPort: 18191
+        - CidrIp: !Ref GatewaysAddresses
+          IpProtocol: tcp
+          FromPort: 18192
+          ToPort: 18192
+        - CidrIp: !Ref GatewaysAddresses
+          IpProtocol: tcp
+          FromPort: 18210
+          ToPort: 18210
+        - CidrIp: !Ref GatewaysAddresses
+          IpProtocol: tcp
+          FromPort: 18211
+          ToPort: 18211
+        - CidrIp: !Ref GatewaysAddresses
+          IpProtocol: tcp
+          FromPort: 18221
+          ToPort: 18221
+        - CidrIp: !Ref GatewaysAddresses
+          IpProtocol: tcp
+          FromPort: 18264
+          ToPort: 18264
+        - CidrIp: !Ref AdminCIDR
+          IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+        - CidrIp: !Ref AdminCIDR
+          IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+        - CidrIp: !Ref AdminCIDR
+          IpProtocol: tcp
+          FromPort: 18190
+          ToPort: 18190
+        - CidrIp: !Ref AdminCIDR
+          IpProtocol: tcp
+          FromPort: 19009
+          ToPort: 19009
+  #begin ManagementRoleStack (cme-iam-role.yaml)
+  CMEIAMRole:
+    Type: AWS::IAM::Role
+    Condition: DeployManagement
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - !If
+            - ProvidedTrustedAccount
+            - Effect: Allow
+              Principal:
+                AWS: [!Ref TrustedAccount]
+              Action: ['sts:AssumeRole']
+            - !Ref 'AWS::NoValue'
+          - !If
+            - NotProvidedTrustedAccount
+            - Effect: Allow
+              Principal:
+                Service: [ec2.amazonaws.com]
+              Action: ['sts:AssumeRole']
+            - !Ref 'AWS::NoValue'
+      Path: /
+      Policies:
+        - PolicyName: CMEPolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - !If
+                - ProvidedSTSRoles
+                - Effect: Allow
+                  Action: ['sts:AssumeRole']
+                  Resource: !Split [',', !Ref STSRoles]
+                - !Ref 'AWS::NoValue'
+              - !If
+                - AllowReadPermissions
+                - Effect: Allow
+                  Action:
+                    - autoscaling:DescribeAutoScalingGroups
+                    - ec2:DescribeCustomerGateways
+                    - ec2:DescribeInstances
+                    - ec2:DescribeNetworkInterfaces
+                    - ec2:DescribeRouteTables
+                    - ec2:DescribeSecurityGroups
+                    - ec2:DescribeSubnets
+                    - ec2:DescribeTransitGateways
+                    - ec2:DescribeTransitGatewayAttachments
+                    - ec2:DescribeTransitGatewayRouteTables
+                    - ec2:DescribeVpcs
+                    - ec2:DescribeVpnGateways
+                    - ec2:DescribeVpnConnections
+                    - ec2:GetTransitGatewayAttachmentPropagations
+                    - elasticloadbalancing:DescribeLoadBalancers
+                    - elasticloadbalancing:DescribeTags
+                    - elasticloadbalancing:DescribeListeners
+                    - elasticloadbalancing:DescribeTargetGroups
+                    - elasticloadbalancing:DescribeRules
+                    - elasticloadbalancing:DescribeTargetHealth
+                  Resource: '*'
+                - !Ref 'AWS::NoValue'
+              - !If
+                - AllowWritePermissions
+                - Effect: Allow
+                  Action:
+                    - ec2:AssociateTransitGatewayRouteTable
+                    - ec2:AttachVpnGateway
+                    - ec2:CreateCustomerGateway
+                    - ec2:CreateVpnConnection
+                    - ec2:CreateVpnGateway
+                    - ec2:DeleteCustomerGateway
+                    - ec2:DeleteVpnConnection
+                    - ec2:DeleteVpnGateway
+                    - ec2:DetachVpnGateway
+                    - ec2:DisableTransitGatewayRouteTablePropagation
+                    - ec2:DisableVgwRoutePropagation
+                    - ec2:DisassociateTransitGatewayRouteTable
+                    - ec2:EnableTransitGatewayRouteTablePropagation
+                    - ec2:EnableVgwRoutePropagation
+                  Resource: '*'
+                - !Ref 'AWS::NoValue'
+              - !If
+                - AllowWritePermissions
+                - Effect: Allow
+                  Action:
+                    - cloudformation:DescribeStacks
+                    - cloudformation:DescribeStackResources
+                  Resource: '*'
+                - !Ref 'AWS::NoValue'
+              - !If
+                - AllowWritePermissions
+                - Effect: Allow
+                  Action:
+                    - cloudformation:CreateStack
+                    - cloudformation:DeleteStack
+                  Resource: 'arn:aws:cloudformation:*:*:stack/vpn-by-tag--*/*'
+                - !Ref 'AWS::NoValue'
+  #end ManagementRoleStack (cme-iam-role.yaml)
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Condition: UseRole
+    Properties:
+      Path: /
+      Roles:
+        - !If [CreateRole, !Ref CMEIAMRole, !Ref ManagementPredefinedRole]
+  ManagementInstance:
+    Type: AWS::EC2::Instance
+    Condition: DeployManagement
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub '${ProvisionTag}-management'
+      ImageId: !FindInMap [RegionMap ,!Ref 'AWS::Region', Fn::FindInMap: [ConverterMap, !Ref ManagementVersion, Value]]
+      InstanceType: !Ref ManagementInstanceType
+      IamInstanceProfile: !If [UseRole, !Ref InstanceProfile, !Ref 'AWS::NoValue']
+      KeyName: !Ref KeyName
+      NetworkInterfaces:
+        - DeviceIndex: '0'
+          AssociatePublicIpAddress: false
+          Description: eth0
+          GroupSet:
+            - !Ref ManagementSecurityGroup
+          DeleteOnTermination: true
+          SubnetId: !Ref PublicSubnet1
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs:
+            Encrypted: !Ref EnableVolumeEncryption
+            VolumeType: gp2
+            VolumeSize: !Ref VolumeSizeManagementStack
+      UserData:
+        'Fn::Base64':
+          !Join
+          - |+
+
+          - - '#!/bin/bash'
+            - 'set -e'
+            - 'logfile=/var/log/aws-user-data.log'
+            - '> ${logfile}'
+            - 'exec 1>>${logfile} 2>>${logfile}'
+            - 'function report-status() {'
+            - '    local rc=${?}'
+            - '    local status=""'
+            - '    local reason="Security Management Server configuration"'
+            - '    local data=""'
+            - '    set +e'
+            - '    printf H4sIAEQeOVoCAzNoYuE3aGL6voCZiZGJiZHBgJeNU6vNo+07LyMjKyuDQYYhtwEnG3MoC5swU2iwoaqBMojDJSwTXJJYlJaZmpOiEJKanJGXn5OfnplarKPgmZesZ2hkYABSxi2siVDmnJNYXKxgpOCcWlSSmZaZnFiSmZ+n4FhakpFflFlSaSAnzmtgYmBmZGlobmxpaBYlzmuMzKWjS5oYFZCDgZGVgbmJkZcBKM7B1MTIyLDd6MS/l4XLWFrX8gim3D/n+/4Es0S7/cLVv22Wzf9weOGtKzfytIMn/FZZYtfyYd6L+DdP1V2+aiyzr773QOvDifXB+vNOsTJOlutPk7Fc7vsralsxi2ra6/L655HHvGaqioS8Vjv+uV7yqkFB//oNblr/177WfHt9/iqW9sVXfnYuNYm/7Tyxyexmms3GHTub/s6xshM4Yf2eLTWtarakhO3/wkAbA734fbblxZti2XIOK4fN0m5VmySznGnzE3ve9RyVTTvMbF/NuWy6eU/mqa9n5r74m9Ir3mCcF+cVO/OkXPuWuVIHruYJmyrH3Z8db/v+2veyQ6/sdlfwyjilZ7Pc+HHtVn73J5cFjKuZGJkXNx41aDxkIAsMW1k+FjEWkf3x2y+euyvf9iU6dM2d6wKH+FZ2PDdonASSV2Zp7DJobG/AqmZhzpIs+kVtEzCB84DcJMzCasDMyPgfLbkzg6KXda59x9yLJ6VCF67J/Pw58tZsxnYp//CVCys5tW5/198kd+Z4XNaN5vaF0997mtqVszlGJO3vi9jBlW7/ZvNdxTT5kyG/is7Y+jjcaFxfPq+5avei419NxPtuCjp8+aOj5StavzwpVk/1MgO3gpRsxk/xHV/2dr/ViLzrK9Yt3nxiU+px3aqlq/YEt+XeDV9y6oeCI3fGhy+/S/aFxVZVfv0p2/pYd+q+r4UTnM/0ys9i4GrXfBmqFMGg/OqxkLNmtDvH3R7HrFS2FU8VVzlumao4dWftRZPVwtfW7rnzyNby7F670oKFEpHMJ5W29M+5Gqd1fem2K1y5P7Y7CLrNkq/kS9rPP/3NA3158SkAHEuNARMEAAA= | base64 -d | gunzip -c | cpopenssl x509 -inform DER >${CPDIR}/tmp/wait-handle.crt'
+            - '    cat ${CPDIR}/conf/ca-bundle.crt >>${CPDIR}/tmp/wait-handle.crt'
+            - '    if [[ ${rc} -eq 0 ]]; then'
+            - '        status="SUCCESS"'
+            - '        reason+=" completed"'
+            - '        data="Configuration completed."'
+            - '    else'
+            - '        status="FAILURE"'
+            - '        reason+=" failed"'
+            - '        data="None"'
+            - '    fi'
+            - '    echo "Reporting status ${status}: ${reason}"'
+            - '    curl_cli -s -S --cacert ${CPDIR}/tmp/wait-handle.crt -X PUT -H "Content-Type:" --data-binary "{\"Status\" : \"${status}\", \"Reason\" : \"${reason}\", \"UniqueId\" : \"${instance_id}\", \"Data\" : \"${data}\"}" ${wait_handle}'
+            - '}'
+            - 'echo -e "\nStarting user-data\n"'
+            - 'echo "Setting up parameters"'
+            - !Sub 'pwd_hash=''${ManagementPasswordHash}'' ; shell=${ShellManagementStack} ; allow_info=${AllowUploadDownload} ; hostname=${ManagementHostname} ; primary=${PrimaryManagement} ; eic=${EnableInstanceConnect} ; admin_subnet=${AdminCIDR} ; eip=${AllocatePublicAddress} ; ntp1=${NTPPrimary} ; ntp2=${NTPSecondary}'
+            - !If [EIP, !Sub 'wait_handle=''${ManagementReadyHandle}''',!Ref 'AWS::NoValue']
+            - !If [NoSIC, 'sic=""', !Join ['', ['sic="$(echo ', 'Fn::Base64': !Ref ManagementSICKey, ' | base64 -d)"']]]
+            - !If [ManageOverInternetAndEIP, 'pub_mgmt=true', 'pub_mgmt=false']
+            - !Join 
+              - ''
+              - - 'bootstrap="$(echo '
+                - 'Fn::Base64':
+                    !Join
+                      - ';'
+                      - - 'echo -e "\nStarting Bootstrap script\n"'
+                        - 'echo "Setting up bootstrap parameters"'
+                        - !Sub 'tag=${ProvisionTag} ; policy=${GatewaysPolicy} ; region=${AWS::Region} ; blades=${GatewaysBlades}'
+                        - !Sub ['version=${Version}', {Version: !Select [0, !Split ['-', !Ref GatewayVersion]]}]
+                        - !Join ['', ['sic="$(echo ', 'Fn::Base64': !Ref GatewaySICKey, ' | base64 -d)"']]
+                        - 'echo "Adding quickstart identifier to cloud-version"'
+                        - 'template="management_qs"'
+                        - 'cv_path="/etc/cloud-version"'
+                        - 'if test -f ${cv_path}; then sed -i ''/template_name/c\template_name: ''"${template}"'''' /etc/cloud-version; fi'
+                        - 'cv_json_path="/etc/cloud-version.json"'
+                        - 'cv_json_path_tmp="/etc/cloud-version-tmp.json"'
+                        - 'if test -f ${cv_json_path}; then cat ${cv_json_path} | jq ''.template_name = "''"${template}"''"'' > ${cv_json_path_tmp}; mv ${cv_json_path_tmp} ${cv_json_path}; fi'
+                        - 'template="${tag}-template"'
+                        - 'echo "Creating CME configuration"'
+                        - 'autoprov_cfg -f init AWS -mn "${tag}-management" -tn "${template}" -cn "${tag}-controller" -po "${policy}" -otp "${sic}" -r "${region}" -ver "${version}" -iam'
+                        - '${blades} && autoprov_cfg -f set template -tn "${template}" -ips -appi -av -ab'
+                        - 'echo -e "\nFinished Bootstrap script\n"'
+                - ' | base64 -d)"'
+            - 'instance_id="$(curl_cli -s -S 169.254.169.254/latest/meta-data/instance-id)"'
+            - 'if [[ -n ${wait_handle} ]] && ${eip}; then'
+            - '    trap report-status EXIT'
+            - 'fi'
+            - 'echo "Updating cloud-version file"'
+            - 'template="management"'
+            - 'cv_path="/etc/cloud-version"'
+            - 'echo "Updating cloud-version file"'
+            - 'if test -f ${cv_path}; then'
+            - '    echo template_name: ${template} >> ${cv_path}'
+            - '    echo template_version: 20210503 >> ${cv_path}'
+            - 'fi'
+            - 'cv_json_path="/etc/cloud-version.json"'
+            - 'cv_json_path_tmp="/etc/cloud-version-tmp.json"'
+            - 'if test -f ${cv_json_path}; then'
+            - '    cat ${cv_json_path} | jq ''.template_name = "''"${template}"''"'' | jq ''.template_version = "20210503"'' > ${cv_json_path_tmp}'
+            - '    mv ${cv_json_path_tmp} ${cv_json_path}'
+            - 'fi'
+            - 'if [[ -z ${pwd_hash} ]]; then'
+            - '    echo "Generating random password hash"'
+            - '    pwd_hash="$(dd if=/dev/urandom count=1 2>/dev/null | sha1sum | cut -c -28)"'
+            - 'fi'
+            - 'echo "Setting admin password"'
+            - 'clish -c "set user admin password-hash ${pwd_hash}" -s'
+            - 'echo "Setting admin shell to ${shell}"'
+            - 'clish -c "set user admin shell ${shell}" -s'
+            - 'if [[ -n ${ntp1} ]]; then'
+            - '    echo "Setting primary NTP server to ${ntp1}"'
+            - '    clish -c "set ntp server primary ${ntp1} version 4" -s'
+            - '    if [[ -n ${ntp2} ]]; then'
+            - '        echo "Setting secondary NTP server to ${ntp2}"'
+            - '        clish -c "set ntp server secondary ${ntp2} version 4" -s'
+            - '    fi'
+            - '    clish -c "set ntp active on" -s'
+            - 'fi'
+            - 'if [[ -n ${hostname} ]]; then'
+            - '    echo "Setting hostname to ${hostname}"'
+            - '    clish -c "set hostname ${hostname}" -s'
+            - 'fi'
+            - 'if [[ "0.0.0.0/0" == ${admin_subnet} ]]; then'
+            - '    mgmt_clients="mgmt_gui_clients_radio=any"'
+            - 'else'
+            - '    admin_subnet_ip="$(echo ${admin_subnet} | cut -d / -f 1)"'
+            - '    admin_subnet_bits="$(echo ${admin_subnet} | cut -d / -f 2)"'
+            - '    mgmt_clients="mgmt_gui_clients_radio=network&mgmt_gui_clients_ip_field=${admin_subnet_ip}&mgmt_gui_clients_subnet_field=${admin_subnet_bits}"'
+            - 'fi'
+            - 'if ${primary}; then'
+            - '    secondary=false'
+            - '    sic=notused'
+            - 'else'
+            - '    secondary=true'
+            - 'fi'
+            - 'echo "Starting First Time Wizard"'
+            - 'config_system -s "install_security_gw=false&install_security_managment=true&${mgmt_clients}&install_mgmt_primary=${primary}&install_mgmt_secondary=${secondary}&mgmt_admin_radio=gaia_admin&ftw_sic_key=${sic}&download_info=${allow_info}&upload_info=${allow_info}"'
+            - 'if ${eic}; then'
+            - '    echo "Enabling ec2 instance connect"'
+            - '    if [[ -d "/etc/ec2-instance-connect" ]]; then'
+            - '        ec2-instance-connect-config on'
+            - '    else'
+            - '        echo "Could not enable eic, /etc/ec2-instance-connect was not found"'
+            - '    fi'
+            - 'fi'
+            - 'if ${primary}; then'
+            - '    until mgmt_cli -r true discard; do'
+            - '        sleep 30'
+            - '    done'
+            - 'fi'
+            - 'if ${pub_mgmt}; then'
+            - '    addr="$(ip addr show dev eth0 | sed -n -e ''s|^ *inet \([^/]*\)/.*eth0$|\1|p'')"'
+            - '    pub_addr="$(ip addr show dev eth0 | sed -n -e ''s|^ *inet \([^/]*\)/.*eth0:1$|\1|p'')"'
+            - '    uid="$(mgmt_cli -r true show-generic-objects class-name com.checkpoint.objects.classes.dummy.CpmiHostCkp details-level full -f json | jq -r ''.objects[] | select(.ipaddr == "''"${addr}"''") | .uid'')"'
+            - '    if [[ -n ${uid}  && -n ${pub_addr} ]]; then'
+            - '        mgmt_cli -r true set-generic-object uid "${uid}" ipaddr "${pub_addr}"'
+            - '    fi'
+            - 'fi'
+            - 'chkconfig --add autoprovision'
+            - 'service autoprovision start'
+            - 'if [[ -n ${bootstrap} ]]; then'
+            - '    echo "Invoking bootstrap script"'
+            - '    eval ${bootstrap}'
+            - 'fi'
+  PublicAddress:
+    Type: AWS::EC2::EIP
+    Condition: EIP
+    Properties:
+      Domain: vpc
+  AddressAssoc:
+    Type: AWS::EC2::EIPAssociation
+    Condition: EIP
+    Properties:
+      InstanceId: !Ref ManagementInstance
+      AllocationId: !GetAtt PublicAddress.AllocationId
+  #end ManagementStack (management.yaml)
+  InternalSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Condition: DeployServers
+    Properties:
+      GroupDescription: Internal security group
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: !If [EncryptedProtocol, 443, 80]
+          ToPort: !If [EncryptedProtocol, 443, 80]
+          SourceSecurityGroupId: !GetAtt PermissiveSecurityGroup.GroupId
+        - IpProtocol: icmp
+          FromPort: -1
+          ToPort: -1
+          SourceSecurityGroupId: !GetAtt PermissiveSecurityGroup.GroupId
+  InternalLBTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Condition: DeployServers
+    Properties:
+      VpcId: !Ref VPC
+      Protocol: !If [ALB, !Ref ALBProtocol, !Ref NLBProtocol]
+      Port: !If [EncryptedProtocol, 443, 80]
+  InternalLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Condition: DeployServers
+    Properties:
+      Type: !If [ALB, application, network]
+      Scheme: internal
+      Subnets: !Split [',', !Join [',', [!Ref PrivateSubnet1, !Ref PrivateSubnet2, !If [3AZsPrivateSubnets, !Ref PrivateSubnet3, !Ref 'AWS::NoValue'], !If [4AZsPrivateSubnets, !Ref PrivateSubnet4, !Ref 'AWS::NoValue'] ] ]]
+      SecurityGroups:
+        - !If [ALB, !GetAtt InternalSecurityGroup.GroupId, !Ref 'AWS::NoValue']
+      Tags:
+        - Key: x-chkp-management
+          Value: !Sub '${ProvisionTag}-management'
+        - Key: x-chkp-template
+          Value: !Sub '${ProvisionTag}-template'
+  InternalLBListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Condition: DeployServers
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref InternalLBTargetGroup
+      LoadBalancerArn: !Ref InternalLoadBalancer
+      Protocol: !If [ALB, !Ref ALBProtocol, !Ref NLBProtocol]
+      Port: !If [EncryptedProtocol, 443, 80]
+      Certificates:
+        - CertificateArn: !If [EncryptedProtocol, !Ref Certificate, !Ref 'AWS::NoValue']
+  #start ServersStack (custom-autoscale.yaml)
+  NotificationTopic:
+    Type: AWS::SNS::Topic
+    Condition: ProvidedAdminEmail
+    Properties:
+      Subscription:
+        - Endpoint: !Ref AdminEmail
+          Protocol: email
+  ServersSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Condition: NotProvidedSecurityGroup
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Join ['_', [!Ref 'AWS::StackName', ServersSecurityGroup]]
+      GroupDescription: Servers security group
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: '-1'
+          CidrIp: 0.0.0.0/0
+  ServersLaunchConfiguration:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Condition: DeployServers
+    Properties:
+      AssociatePublicIpAddress: !Ref AllocatePublicAddress
+      KeyName: !Ref KeyName
+      ImageId: !Ref ServerAMI
+      SecurityGroups: !If [NotProvidedSecurityGroup, [!Ref ServersSecurityGroup], [!Ref SourceSecurityGroup]]
+      InstanceType: !Ref ServerInstanceType
+  ServersGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Condition: DeployServers
+    Properties:
+      VPCZoneIdentifier: !Split [',', !Join [',', [!Ref PrivateSubnet1, !Ref PrivateSubnet2, !If [3AZsPrivateSubnets, !Ref PrivateSubnet3, !Ref 'AWS::NoValue'], !If [4AZsPrivateSubnets, !Ref PrivateSubnet4, !Ref 'AWS::NoValue'] ] ]]
+      LaunchConfigurationName: !Ref ServersLaunchConfiguration
+      MinSize: !Ref ServersMinSize
+      MaxSize: !Ref ServersMaxSize
+      TargetGroupARNs: !If [ProvidedTargetGroupsServersStack, !Split [',', !Ref ServersTargetGroups], !Ref 'AWS::NoValue']
+      NotificationConfiguration: !If
+        - ProvidedAdminEmail
+        - TopicARN: !Ref NotificationTopic
+          NotificationTypes:
+            - autoscaling:EC2_INSTANCE_LAUNCH
+            - autoscaling:EC2_INSTANCE_LAUNCH_ERROR
+            - autoscaling:EC2_INSTANCE_TERMINATE
+            - autoscaling:EC2_INSTANCE_TERMINATE_ERROR
+        - !Ref 'AWS::NoValue'
+      Tags:
+        - Key: Name
+          Value: !Ref ServerName
+          PropagateAtLaunch: true
+  ScaleUpPolicy:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Condition: DeployServers
+    Properties:
+      AdjustmentType: ChangeInCapacity
+      AutoScalingGroupName: !Ref ServersGroup
+      Cooldown: '300'
+      ScalingAdjustment: 1
+  ScaleDownPolicy:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Condition: DeployServers
+    Properties:
+      AdjustmentType: ChangeInCapacity
+      AutoScalingGroupName: !Ref ServersGroup
+      Cooldown: '300'
+      ScalingAdjustment: -1
+  CPUAlarmHigh:
+    Type: AWS::CloudWatch::Alarm
+    Condition: DeployServers
+    Properties:
+      AlarmDescription: Scale-up if CPU > 80% for 10 minutes
+      MetricName: CPUUtilization
+      Namespace: AWS/EC2
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 80
+      AlarmActions:
+        - !Ref ScaleUpPolicy
+      Dimensions:
+        - Name: AutoScalingGroupName
+          Value: !Ref ServersGroup
+      ComparisonOperator: GreaterThanThreshold
+  CPUAlarmLow:
+    Type: AWS::CloudWatch::Alarm
+    Condition: DeployServers
+    Properties:
+      AlarmDescription: Scale-down if CPU < 60% for 10 minutes
+      MetricName: CPUUtilization
+      Namespace: AWS/EC2
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 60
+      AlarmActions:
+        - !Ref ScaleDownPolicy
+      Dimensions:
+        - Name: AutoScalingGroupName
+          Value: !Ref ServersGroup
+      ComparisonOperator: LessThanThreshold
+  #end ServersStack (custom-autoscale.yaml)
+  #end MainStack (qs-autoscale.template.yaml)
+  
+Outputs:
+  InternalPort:
+    Description: The internal Load Balancer should listen to this port
+    Value: !If [EncryptedProtocol, 443, 80]
+  ManagementName:
+    Description: The name that represents the Security Management Server
+    Value: !Sub '${ProvisionTag}-management'
+  ConfigurationTemplateName:
+    Description: The name that represents the configuration template. Configurations required to automatically provision the Gateways in the Auto Scaling Group, such as what Security Policy to install and which Blades to enable, will be placed under this template name
+    Value: !Sub '${ProvisionTag}-template'
+  ControllerName:
+    Description: The name that represents the controller. Configurations required to connect to your AWS environment, such as credentials and regions, will be placed under this controller name
+    Value: !Sub '${ProvisionTag}-controller'
+  LBURL:
+    Description: The URL of the external Load Balancer
+    Value: !GetAtt ExternalLoadBalancer.DNSName
