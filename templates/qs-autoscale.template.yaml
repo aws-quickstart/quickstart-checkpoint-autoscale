@@ -176,8 +176,8 @@ Parameters:
   Certificate:
     Description: Amazon Resource Name (ARN) of an HTTPS Certificate, ignored if the selected protocol is HTTP
     Type: String
-    AllowedPattern: '^(arn:aws:[a-z]+::[0-9]{12}:server-certificate/[a-zA-Z0-9-]*)?$'
-    ConstraintDescription: 'Must be a valid Amazon Resource Name (ARN), for example: arn:aws:iam::123456789012:server-certificate/web-server-certificate'
+    AllowedPattern: '^(arn:[\w+=/,.@-]+:[\w+=/,.@-]+:[\w+=/,.@-]*:[0-9]+:[\w+=,.@-]+(/[\w+=,.@-]+)*)?$'
+    ConstraintDescription: 'Must be a valid Amazon Resource Name (ARN), for example: arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012'
   ServicePort:
     Description: 'The external Load Balancer listens to this port. Leave this field blank to use default ports: 80 for HTTP and 443 for HTTPS'
     Type: String
