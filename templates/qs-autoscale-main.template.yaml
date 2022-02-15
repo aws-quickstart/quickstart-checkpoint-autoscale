@@ -50,6 +50,8 @@ Metadata:
           - ManagementInstanceType
           - ManagementVersion
           - ManagementPasswordHash
+          - ManagementPermissions
+          - ManagementPredefinedRole
           - GatewaysPolicy
           - GatewaysBlades
           - AdminCIDR
@@ -137,6 +139,10 @@ Metadata:
         default: Management version & license
       ManagementPasswordHash:
         default: Management password hash
+      ManagementPermissions:
+        default: IAM role
+      ManagementPredefinedRole:
+        default: Existing IAM role name
       GatewaysPolicy:
         default: Security Policy
       GatewaysBlades:
@@ -401,6 +407,20 @@ Parameters:
     Default: ''
     AllowedPattern: '^[\$\./a-zA-Z0-9]*$'
     NoEcho: true
+  ManagementPermissions:
+    Description: IAM role to attach to the instance profile.
+    Type: String
+    Default: Create with read-write permissions
+    AllowedValues:
+      - None (configure later)
+      - Use existing (specify an existing IAM role name)
+      - Create with assume role permissions (specify an STS role ARN)
+      - Create with read permissions
+      - Create with read-write permissions
+  ManagementPredefinedRole:
+    Description: A predefined IAM role to attach to the instance profile. Ignored if IAM role is not set to 'Use existing'.
+    Type: String
+    Default: ''
   GatewaysPolicy:
     Description: The name of the Security Policy package to be installed on the gateways in the Security Gateways Auto Scaling group
     Type: String
@@ -525,6 +545,8 @@ Resources:
         ManagementInstanceType: !Ref ManagementInstanceType
         ManagementVersion: !Ref ManagementVersion
         ManagementPasswordHash: !Ref ManagementPasswordHash
+        ManagementPermissions: !Ref ManagementPermissions
+        ManagementPredefinedRole: !Ref ManagementPredefinedRole
         GatewaysPolicy: !Ref GatewaysPolicy
         GatewaysBlades: !Ref GatewaysBlades
         AdminCIDR: !Ref AdminCIDR
