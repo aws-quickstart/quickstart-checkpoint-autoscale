@@ -192,7 +192,7 @@ Parameters:
   GatewaysSubnets:
     Description: Select at least 2 public subnets in the VPC. If you choose to deploy a Security Management Server it will be deployed in the first subnet
     Type: List<AWS::EC2::Subnet::Id>
-    MinLength: 2
+    AllowedPattern: '.+'
   GatewayInstanceType:
     Description: The EC2 instance type for the Security Gateways
     Type: String
@@ -320,7 +320,7 @@ Parameters:
   ServersSubnets:
     Description: Provide at least 2 private subnet IDs in the chosen VPC, separated by commas (e.g. subnet-0d72417c,subnet-1f61306f,subnet-1061d06f)
     Type: List<AWS::EC2::Subnet::Id>
-    MinLength: 2
+    AllowedPattern: '.+'
   ServerInstanceType:
     Description: The EC2 instance type for the web servers
     Type: String

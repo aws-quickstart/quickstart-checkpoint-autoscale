@@ -155,7 +155,7 @@ Parameters:
   AvailabilityZones:
     Description: List of Availability Zones (AZs) to use for the subnets in the VPC. Select at least two
     Type: List<AWS::EC2::AvailabilityZone::Name>
-    MinLength: 2
+    AllowedPattern: '.+'
   NumberOfAZs:
     Description: Number of Availability Zones to use in the VPC. This must match your selections in the list of Availability Zones parameter
     Type: Number
