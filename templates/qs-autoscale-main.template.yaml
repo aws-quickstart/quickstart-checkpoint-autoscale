@@ -22,6 +22,8 @@ Metadata:
         Parameters:
           - KeyName
           - EnableVolumeEncryption
+          - VolumeSize
+          - VolumeType
           - EnableInstanceConnect
           - AllowUploadDownload
           - ProvisionTag
@@ -91,6 +93,10 @@ Metadata:
         default: Key name
       EnableVolumeEncryption:
         default: Enable environment volume encryption
+      VolumeSize:
+        default: Root volume size (GB)
+      VolumeType:
+        default: Volume Type
       EnableInstanceConnect:
         default: Enable AWS Instance Connect
       AllowUploadDownload:
@@ -228,6 +234,17 @@ Parameters:
     AllowedValues:
       - true
       - false
+  VolumeSize:
+    Type: Number
+    Default: 100
+    MinValue: 100
+  VolumeType:
+    Description: General Purpose SSD Volume Type
+    Type: String
+    Default: gp3
+    AllowedValues:
+      - gp3
+      - gp2
   EnableInstanceConnect:
     Description: Enable SSH connection over AWS web console
     Type: String
@@ -480,6 +497,8 @@ Resources:
         VPC: !GetAtt VPCStack.Outputs.VPCID
         KeyName: !Ref KeyName
         EnableVolumeEncryption: !Ref EnableVolumeEncryption
+        VolumeSize: !Ref VolumeSize
+        VolumeType: !Ref VolumeType
         EnableInstanceConnect: !Ref EnableInstanceConnect
         AllowUploadDownload: !Ref AllowUploadDownload
         ProvisionTag: !Ref ProvisionTag
