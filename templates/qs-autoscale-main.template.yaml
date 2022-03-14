@@ -22,6 +22,8 @@ Metadata:
         Parameters:
           - KeyName
           - EnableVolumeEncryption
+          - VolumeSize
+          - VolumeType
           - EnableInstanceConnect
           - AllowUploadDownload
           - ProvisionTag
@@ -48,6 +50,8 @@ Metadata:
           - ManagementInstanceType
           - ManagementVersion
           - ManagementPasswordHash
+          - ManagementPermissions
+          - ManagementPredefinedRole
           - GatewaysPolicy
           - GatewaysBlades
           - AdminCIDR
@@ -91,6 +95,10 @@ Metadata:
         default: Key name
       EnableVolumeEncryption:
         default: Enable environment volume encryption
+      VolumeSize:
+        default: Root volume size (GB)
+      VolumeType:
+        default: Volume Type
       EnableInstanceConnect:
         default: Enable AWS Instance Connect
       AllowUploadDownload:
@@ -131,6 +139,10 @@ Metadata:
         default: Management version & license
       ManagementPasswordHash:
         default: Management password hash
+      ManagementPermissions:
+        default: IAM role
+      ManagementPredefinedRole:
+        default: Existing IAM role name
       GatewaysPolicy:
         default: Security Policy
       GatewaysBlades:
@@ -155,7 +167,7 @@ Parameters:
   AvailabilityZones:
     Description: List of Availability Zones (AZs) to use for the subnets in the VPC. Select at least two
     Type: List<AWS::EC2::AvailabilityZone::Name>
-    MinLength: 2
+    AllowedPattern: '.+'
   NumberOfAZs:
     Description: Number of Availability Zones to use in the VPC. This must match your selections in the list of Availability Zones parameter
     Type: Number
@@ -228,6 +240,17 @@ Parameters:
     AllowedValues:
       - true
       - false
+  VolumeSize:
+    Type: Number
+    Default: 100
+    MinValue: 100
+  VolumeType:
+    Description: General Purpose SSD Volume Type
+    Type: String
+    Default: gp3
+    AllowedValues:
+      - gp3
+      - gp2
   EnableInstanceConnect:
     Description: Enable SSH connection over AWS web console
     Type: String
@@ -274,8 +297,8 @@ Parameters:
   Certificate:
     Description: Amazon Resource Name (ARN) of an HTTPS Certificate, ignored if the selected protocol is HTTP
     Type: String
-    AllowedPattern: '^(arn:aws:[a-z]+::[0-9]{12}:server-certificate/[a-zA-Z0-9-]*)?$'
-    ConstraintDescription: 'Must be a valid Amazon Resource Name (ARN), for example: arn:aws:iam::123456789012:server-certificate/web-server-certificate'
+    AllowedPattern: '^(arn:[\w+=/,.@-]+:[\w+=/,.@-]+:[\w+=/,.@-]*:[0-9]+:[\w+=,.@-]+(/[\w+=,.@-]+)*)?$'
+    ConstraintDescription: 'Must be a valid Amazon Resource Name (ARN), for example: arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012'
   ServicePort:
     Description: 'The external Load Balancer listens to this port. Leave this field blank to use default ports: 80 for HTTP and 443 for HTTPS'
     Type: String
@@ -318,7 +341,7 @@ Parameters:
   GatewayVersion:
     Description: The version and license to install on the Security Gateways
     Type: String
-    Default: R80.40-PAYG-NGTP
+    Default: R81.10-BYOL
     AllowedValues:
       - R80.40-BYOL
       - R80.40-PAYG-NGTP
@@ -326,6 +349,9 @@ Parameters:
       - R81-BYOL
       - R81-PAYG-NGTP
       - R81-PAYG-NGTX
+      - R81.10-BYOL
+      - R81.10-PAYG-NGTP
+      - R81.10-PAYG-NGTX
   GatewayPasswordHash:
     Description: Admin user's password hash (use command "openssl passwd -1 PASSWORD" to get the PASSWORD's hash) (optional)
     Type: String
@@ -367,18 +393,32 @@ Parameters:
   ManagementVersion:
     Description: The version and license to install on the Security Management Server
     Type: String
-    Default: R80.40-PAYG
+    Default: R81.10-BYOL
     AllowedValues:
-      - R80.40-BYOL
-      - R80.40-PAYG
       - R81-BYOL
       - R81-PAYG
+      - R81.10-BYOL
+      - R81.10-PAYG
   ManagementPasswordHash:
     Description: Admin user's password hash (use command "openssl passwd -1 PASSWORD" to get the PASSWORD's hash) (optional)
     Type: String
     Default: ''
     AllowedPattern: '^[\$\./a-zA-Z0-9]*$'
     NoEcho: true
+  ManagementPermissions:
+    Description: IAM role to attach to the instance profile.
+    Type: String
+    Default: Create with read-write permissions
+    AllowedValues:
+      - None (configure later)
+      - Use existing (specify an existing IAM role name)
+      - Create with assume role permissions (specify an STS role ARN)
+      - Create with read permissions
+      - Create with read-write permissions
+  ManagementPredefinedRole:
+    Description: A predefined IAM role to attach to the instance profile. Ignored if IAM role is not set to 'Use existing'.
+    Type: String
+    Default: ''
   GatewaysPolicy:
     Description: The name of the Security Policy package to be installed on the gateways in the Security Gateways Auto Scaling group
     Type: String
@@ -475,6 +515,8 @@ Resources:
         VPC: !GetAtt VPCStack.Outputs.VPCID
         KeyName: !Ref KeyName
         EnableVolumeEncryption: !Ref EnableVolumeEncryption
+        VolumeSize: !Ref VolumeSize
+        VolumeType: !Ref VolumeType
         EnableInstanceConnect: !Ref EnableInstanceConnect
         AllowUploadDownload: !Ref AllowUploadDownload
         ProvisionTag: !Ref ProvisionTag
@@ -501,6 +543,8 @@ Resources:
         ManagementInstanceType: !Ref ManagementInstanceType
         ManagementVersion: !Ref ManagementVersion
         ManagementPasswordHash: !Ref ManagementPasswordHash
+        ManagementPermissions: !Ref ManagementPermissions
+        ManagementPredefinedRole: !Ref ManagementPredefinedRole
         GatewaysPolicy: !Ref GatewaysPolicy
         GatewaysBlades: !Ref GatewaysBlades
         AdminCIDR: !Ref AdminCIDR
