@@ -25,6 +25,7 @@ Metadata:
           - VolumeSize
           - VolumeType
           - EnableInstanceConnect
+          - TerminationProtection
           - AllowUploadDownload
           - ProvisionTag
           - LoadBalancersType
@@ -33,6 +34,7 @@ Metadata:
           - Certificate
           - ServicePort
           - AdminEmail
+          - ResourcesTagName
       - Label:
           default: Check Point CloudGuard IaaS Security Gateways Auto Scaling Group Configuration
         Parameters:
@@ -101,6 +103,8 @@ Metadata:
         default: Volume Type
       EnableInstanceConnect:
         default: Enable AWS Instance Connect
+      TerminationProtection:
+        default: Termination Protection
       AllowUploadDownload:
         default: Allow upload & download
       ProvisionTag:
@@ -117,6 +121,8 @@ Metadata:
         default: Custom service port
       AdminEmail:
         default: Email address
+      ResourcesTagName:
+        default: Resources prefix tag
       GatewayInstanceType:
         default: Gateways instance type
       GatewaysMinSize:
@@ -165,76 +171,78 @@ Metadata:
         default: Quick Start S3 Key Prefix
 Parameters:
   AvailabilityZones:
-    Description: List of Availability Zones (AZs) to use for the subnets in the VPC. Select at least two
+    Description: List of Availability Zones (AZs) to use for the subnets in the VPC. Select at least two.
     Type: List<AWS::EC2::AvailabilityZone::Name>
     AllowedPattern: '.+'
   NumberOfAZs:
-    Description: Number of Availability Zones to use in the VPC. This must match your selections in the list of Availability Zones parameter
+    Description: Number of Availability Zones to use in the VPC. This must match your selections in the list of Availability Zones parameter.
     Type: Number
     Default: 2
-    MinValue: 2
-    MaxValue: 4
+    AllowedValues:
+      - 2
+      - 3
+      - 4
   VPCCIDR:
-    Description: CIDR block for the VPC
+    Description: CIDR block for the VPC.
     Type: String
     Default: 10.0.0.0/16
     AllowedPattern: '^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(1[6-9]|2[0-8]))$'
-    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28
+    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28.
   PublicSubnet1CIDR:
-    Description: CIDR block for public subnet 1 located in the 1st Availability Zone. If you choose to deploy a Security Management Server it will be deployed in this subnet
+    Description: CIDR block for public subnet 1 located in the 1st Availability Zone. If you choose to deploy a Security Management Server it will be deployed in this subnet.
     Type: String
     Default: 10.0.10.0/24
     AllowedPattern: '^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(1[6-9]|2[0-8]))$'
-    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28
+    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28.
   PublicSubnet2CIDR:
-    Description: CIDR block for public subnet 2 located in the 2nd Availability Zone
+    Description: CIDR block for public subnet 2 located in the 2nd Availability Zone.
     Type: String
     Default: 10.0.20.0/24
     AllowedPattern: '^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(1[6-9]|2[0-8]))$'
-    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28
+    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28.
   PublicSubnet3CIDR:
-    Description: CIDR block for public subnet 3 located in the 3rd Availability Zone
+    Description: CIDR block for public subnet 3 located in the 3rd Availability Zone.
     Type: String
     Default: 10.0.30.0/24
     AllowedPattern: '^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(1[6-9]|2[0-8]))$'
-    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28
+    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28.
   PublicSubnet4CIDR:
-    Description: CIDR block for public subnet 4 located in the 4th Availability Zone
+    Description: CIDR block for public subnet 4 located in the 4th Availability Zone.
     Type: String
     Default: 10.0.40.0/24
     AllowedPattern: '^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(1[6-9]|2[0-8]))$'
-    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28
+    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28.
   PrivateSubnet1CIDR:
-    Description: CIDR block for private subnet 1 located in the 1st Availability Zone
+    Description: CIDR block for private subnet 1 located in the 1st Availability Zone.
     Type: String
     Default: 10.0.11.0/24
     AllowedPattern: '^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(1[6-9]|2[0-8]))$'
-    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28
+    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28.
   PrivateSubnet2CIDR:
-    Description: CIDR block for private subnet 2 located in the 2nd Availability Zone
+    Description: CIDR block for private subnet 2 located in the 2nd Availability Zone.
     Type: String
     Default: 10.0.21.0/24
     AllowedPattern: '^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(1[6-9]|2[0-8]))$'
-    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28
+    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28.
   PrivateSubnet3CIDR:
-    Description: CIDR block for private subnet 3 located in the 3rd Availability Zone
+    Description: CIDR block for private subnet 3 located in the 3rd Availability Zone.
     Type: String
     Default: 10.0.31.0/24
     AllowedPattern: '^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(1[6-9]|2[0-8]))$'
-    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28
+    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28.
   PrivateSubnet4CIDR:
-    Description: CIDR block for private subnet 4 located in the 4th Availability Zone
+    Description: CIDR block for private subnet 4 located in the 4th Availability Zone.
     Type: String
     Default: 10.0.41.0/24
     AllowedPattern: '^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(1[6-9]|2[0-8]))$'
-    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28
+    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28.
   KeyName:
-    Description: The EC2 Key Pair to allow SSH access to the instances
+    Description: The EC2 Key Pair to allow SSH access to the instances.
     Type: AWS::EC2::KeyPair::KeyName
     MinLength: 1
-    ConstraintDescription: Must be the name of an existing EC2 KeyPair
+    ConstraintDescription: Must be the name of an existing EC2 KeyPair.
   EnableVolumeEncryption:
-    Description: Encrypt Environment instances volume with default AWS KMS key
+    Description: Encrypt Environment instances volume with default AWS KMS key.
     Type: String
     Default: true
     AllowedValues:
@@ -252,41 +260,48 @@ Parameters:
       - gp3
       - gp2
   EnableInstanceConnect:
-    Description: Enable SSH connection over AWS web console
+    Description: Enable SSH connection over AWS web console.
+    Type: String
+    Default: false
+    AllowedValues:
+      - true
+      - false
+  TerminationProtection:
+    Description: Prevents an instance from accidental termination.
     Type: String
     Default: false
     AllowedValues:
       - true
       - false
   AllowUploadDownload:
-    Description: Automatically download Blade Contracts and other important data. Improve product experience by sending data to Check Point
+    Description: Automatically download updates and share statistical data for product improvement purpose.
     Type: String
     Default: true
     AllowedValues:
       - true
       - false
   ProvisionTag:
-    Description: The tag is used by the Security Management Server to automatically provision the Security Gateways. Must be up to 12 alphanumeric characters and unique for each Quick Start deployment
+    Description: The tag is used by the Security Management Server to automatically provision the Security Gateways. Must be up to 12 alphanumeric characters and unique for each Quick Start deployment.
     Type: String
     Default: quickstart
     AllowedPattern: '^[a-zA-Z0-9-]{1,12}$'
-    ConstraintDescription: The tag must be up to 12 alphanumeric character
+    ConstraintDescription: The tag must be up to 12 alphanumeric character.
   LoadBalancersType:
-    Description: Use Network Load Balancer if you wish to preserve the source IP address and Application Load Balancer if you wish to perform SSL Offloading
+    Description: Use Network Load Balancer if you wish to preserve the source IP address and Application Load Balancer if you wish to perform SSL Offloading.
     Type: String
     Default: Network Load Balancer
     AllowedValues:
       - Network Load Balancer
       - Application Load Balancer
   ALBProtocol:
-    Description: The protocol to use on the Application Load Balancer. If Network Load Balancer was selected this section will be ignored
+    Description: The protocol to use on the Application Load Balancer. If Network Load Balancer was selected this section will be ignored.
     Type: String
     Default: HTTP
     AllowedValues:
       - HTTP
       - HTTPS
   NLBProtocol:
-    Description: The protocol to use on the Network Load Balancer. If Application Load Balancer was selected this section will be ignored
+    Description: The protocol to use on the Network Load Balancer. If Application Load Balancer was selected this section will be ignored.
     Type: String
     Default: TCP
     AllowedValues:
@@ -295,26 +310,32 @@ Parameters:
       - UDP
       - TCP_UDP
   Certificate:
-    Description: Amazon Resource Name (ARN) of an HTTPS Certificate, ignored if the selected protocol is HTTP
+    Description: Amazon Resource Name (ARN) of an HTTPS Certificate, ignored if the selected protocol is HTTP.
     Type: String
     AllowedPattern: '^(arn:[\w+=/,.@-]+:[\w+=/,.@-]+:[\w+=/,.@-]*:[0-9]+:[\w+=,.@-]+(/[\w+=,.@-]+)*)?$'
     ConstraintDescription: 'Must be a valid Amazon Resource Name (ARN), for example: arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012'
   ServicePort:
-    Description: 'The external Load Balancer listens to this port. Leave this field blank to use default ports: 80 for HTTP and 443 for HTTPS'
+    Description: 'The external Load Balancer listens to this port. Leave this field blank to use default ports: 80 for HTTP and 443 for HTTPS.'
     Type: String
     AllowedPattern: '^([0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])?$'
-    ConstraintDescription: Custom service port must be a number between 0 and 65535
+    ConstraintDescription: Custom service port must be a number between 0 and 65535.
   AdminEmail:
-    Description: Notifications about scaling events will be sent to this email address (optional)
+    Description: Notifications about scaling events will be sent to this email address. (optional)
     Type: String
     Default: ''
     AllowedPattern: '^(([a-zA-Z0-9_\-\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([a-zA-Z0-9\-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?))?$'
-    ConstraintDescription: Must be a valid email address
+    ConstraintDescription: Must be a valid email address.
+  ResourcesTagName:
+    Description: The name tag of the resources. (optional)
+    Type: String
+    Default: ''
   GatewayInstanceType:
-    Description: The EC2 instance type for the Security Gateways
+    Description: The EC2 instance type for the Security Gateways.
     Type: String
     Default: c5.xlarge
     AllowedValues:
+      - c4.large
+      - c4.xlarge
       - c5.large
       - c5.xlarge
       - c5.2xlarge
@@ -327,19 +348,67 @@ Parameters:
       - c5n.4xlarge
       - c5n.9xlarge
       - c5n.18xlarge
+      - m5.large
+      - m5.xlarge
+      - m5.2xlarge
+      - m5.4xlarge
+      - m5.8xlarge
+      - m5.12xlarge
+      - m6i.large
+      - m6i.xlarge
+      - m6i.2xlarge
+      - m6i.4xlarge
+      - m6i.12xlarge
+      - m6i.24xlarge
+      - c6i.large
+      - c6i.xlarge
+      - c6i.2xlarge
+      - c6i.4xlarge
+      - c6i.12xlarge
+      - c6i.24xlarge
+      - r5.large
+      - r5.xlarge
+      - r5.2xlarge
+      - r5.4xlarge
+      - r5.12xlarge
+      - r5.24xlarge
+      - r5a.large
+      - r5a.xlarge
+      - r5a.2xlarge
+      - r5a.4xlarge
+      - r5a.12xlarge
+      - r5a.24xlarge
+      - r5b.large
+      - r5b.xlarge
+      - r5b.2xlarge
+      - r5b.4xlarge
+      - r5b.12xlarge
+      - r5b.24xlarge
+      - r5n.large
+      - r5n.xlarge
+      - r5n.2xlarge
+      - r5n.4xlarge
+      - r5n.12xlarge
+      - r5n.24xlarge
+      - m6a.large
+      - m6a.xlarge
+      - m6a.2xlarge
+      - m6a.4xlarge
+      - m6a.12xlarge
+      - m6a.24xlarge
     ConstraintDescription: Must be a valid EC2 instance type
   GatewaysMinSize:
-    Description: The minimal number of Security Gateways
+    Description: The minimal number of Security Gateways.
     Type: Number
     Default: 2
     MinValue: 1
   GatewaysMaxSize:
-    Description: The maximal number of Security Gateways
+    Description: The maximal number of Security Gateways.
     Type: Number
     Default: 10
     MinValue: 1
   GatewayVersion:
-    Description: The version and license to install on the Security Gateways
+    Description: The version and license to install on the Security Gateways.
     Type: String
     Default: R81.10-BYOL
     AllowedValues:
@@ -353,45 +422,100 @@ Parameters:
       - R81.10-PAYG-NGTP
       - R81.10-PAYG-NGTX
   GatewayPasswordHash:
-    Description: Admin user's password hash (use command "openssl passwd -1 PASSWORD" to get the PASSWORD's hash) (optional)
+    Description: Admin user's password hash (use command "openssl passwd -6 PASSWORD" to get the PASSWORD's hash). (optional)
     Type: String
     Default: ''
     AllowedPattern: '^[\$\./a-zA-Z0-9]*$'
     NoEcho: true
   GatewaySICKey:
-    Description: The Secure Internal Communication key creates trusted connections between Check Point components. Choose a random string consisting of at least 8 alphanumeric characters
+    Description: The Secure Internal Communication key creates trusted connections between Check Point components. Choose a random string consisting of at least 8 alphanumeric characters.
     Type: String
     AllowedPattern: '^[a-zA-Z0-9]{8,}$'
-    ConstraintDescription: Secure Internal Communication activation key should contain only alpha numeric characters and be at least 8 characters long
+    ConstraintDescription: Secure Internal Communication activation key should contain only alpha numeric characters and be at least 8 characters long.
     NoEcho: true
   CloudWatch:
-    Description: Report Check Point specific CloudWatch metrics
+    Description: Report Check Point specific CloudWatch metrics.
     Type: String
     Default: false
     AllowedValues:
       - true
       - false
   ManagementDeploy:
-    Description: Select 'false' to use an existing Security Management Server or to deploy one later and to ignore the other parameters of this section
+    Description: Select 'false' to use an existing Security Management Server or to deploy one later and to ignore the other parameters of this section.
     Type: String
     Default: true
     AllowedValues:
       - true
       - false
   ManagementInstanceType:
-    Description: The EC2 instance type of the Security Management Server
+    Description: The EC2 instance type of the Security Management Server.
     Type: String
     Default: m5.xlarge
     AllowedValues:
+      - c5.large
+      - c5.xlarge
+      - c5.2xlarge
+      - c5.4xlarge
+      - c5.9xlarge
+      - c5.18xlarge
+      - c5n.large
+      - c5n.xlarge
+      - c5n.2xlarge
+      - c5n.4xlarge
+      - c5n.9xlarge
+      - c5n.18xlarge
       - m5.large
       - m5.xlarge
       - m5.2xlarge
       - m5.4xlarge
+      - m5.8xlarge
       - m5.12xlarge
       - m5.24xlarge
+      - m6i.large
+      - m6i.xlarge
+      - m6i.2xlarge
+      - m6i.4xlarge
+      - m6i.12xlarge
+      - m6i.24xlarge
+      - c6i.large
+      - c6i.xlarge
+      - c6i.2xlarge
+      - c6i.4xlarge
+      - c6i.12xlarge
+      - c6i.24xlarge
+      - r5.large
+      - r5.xlarge
+      - r5.2xlarge
+      - r5.4xlarge
+      - r5.12xlarge
+      - r5.24xlarge
+      - r5a.large
+      - r5a.xlarge
+      - r5a.2xlarge
+      - r5a.4xlarge
+      - r5a.12xlarge
+      - r5a.24xlarge
+      - r5b.large
+      - r5b.xlarge
+      - r5b.2xlarge
+      - r5b.4xlarge
+      - r5b.12xlarge
+      - r5b.24xlarge
+      - r5n.large
+      - r5n.xlarge
+      - r5n.2xlarge
+      - r5n.4xlarge
+      - r5n.12xlarge
+      - r5n.24xlarge
+      - m6a.large
+      - m6a.xlarge
+      - m6a.2xlarge
+      - m6a.4xlarge
+      - m6a.12xlarge
+      - m6a.24xlarge
     ConstraintDescription: Must be a valid EC2 instance type
   ManagementVersion:
-    Description: The version and license to install on the Security Management Server
+    Description: The version and license to install on the Security Management Server.
     Type: String
     Default: R81.10-BYOL
     AllowedValues:
@@ -400,7 +524,7 @@ Parameters:
       - R81.10-BYOL
       - R81.10-PAYG
   ManagementPasswordHash:
-    Description: Admin user's password hash (use command "openssl passwd -1 PASSWORD" to get the PASSWORD's hash) (optional)
+    Description: Admin user's password hash (use command "openssl passwd -6 PASSWORD" to get the PASSWORD's hash). (optional)
     Type: String
     Default: ''
     AllowedPattern: '^[\$\./a-zA-Z0-9]*$'
@@ -420,34 +544,34 @@ Parameters:
     Type: String
     Default: ''
   GatewaysPolicy:
-    Description: The name of the Security Policy package to be installed on the gateways in the Security Gateways Auto Scaling group
+    Description: The name of the Security Policy package to be installed on the gateways in the Security Gateways Auto Scaling group.
     Type: String
     Default: Standard
     MinLength: 1
   GatewaysBlades:
-    Description: Turn on the Intrusion Prevention System, Application Control, Anti-Virus and Anti-Bot Blades (these and additional Blades can be manually turned on or off later)
+    Description: Turn on the Intrusion Prevention System, Application Control, Anti-Virus and Anti-Bot Blades (these and additional Blades can be manually turned on or off later).
     Type: String
     Default: true
     AllowedValues:
       - true
       - false
   AdminCIDR:
-    Description: Allow web, SSH, and graphical clients only from this network to communicate with the Security Management Server
+    Description: Allow web, SSH, and graphical clients only from this network to communicate with the Security Management Server.
     Type: String
-    AllowedPattern: '^(([0-9]{1,3}\.){3}[0-9]{1,3}/([0-9]|[1-2][0-9]|3[0-2]))?$'
+    AllowedPattern: '^((([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2])))?$'
   GatewaysAddresses:
-    Description: Allow gateways only from this network to communicate with the Security Management Server
+    Description: Allow gateways only from this network to communicate with the Security Management Server.
     Type: String
-    AllowedPattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}/([0-9]|[1-2][0-9]|3[0-2])$'
+    AllowedPattern: '^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$'
   ServersDeploy:
-    Description: Select 'true' to deploy web servers and an internal Application Load Balancer. If you select 'false' the other parameters of this section will be ignored
+    Description: Select 'true' to deploy web servers and an internal Application Load Balancer. If you select 'false' the other parameters of this section will be ignored.
     Type: String
     Default: false
     AllowedValues:
       - true
       - false
   ServerInstanceType:
-    Description: The EC2 instance type for the web servers
+    Description: The EC2 instance type for the web servers.
     Type: String
     Default: t3.micro
     AllowedValues:
@@ -463,7 +587,7 @@ Parameters:
     Description: The Amazon Machine Image ID of a preconfigured web server (e.g. ami-0dc7dc63)
     Type: String
     AllowedPattern: '^(ami-(([0-9a-f]{8})|([0-9a-f]{17})))?$'
-    ConstraintDescription: Amazon Machine Image ID must be in the form ami-xxxxxxxx or ami-xxxxxxxxxxxxxxxxx
+    ConstraintDescription: Amazon Machine Image ID must be in the form ami-xxxxxxxx or ami-xxxxxxxxxxxxxxxxx.
   QSS3BucketName:
     Description: S3 bucket name for the Quick Start assets. Quick Start bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-)
     AllowedPattern: "^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$"
@@ -518,6 +642,7 @@ Resources:
         VolumeSize: !Ref VolumeSize
         VolumeType: !Ref VolumeType
         EnableInstanceConnect: !Ref EnableInstanceConnect
+        TerminationProtection: !Ref TerminationProtection
         AllowUploadDownload: !Ref AllowUploadDownload
         ProvisionTag: !Ref ProvisionTag
         LoadBalancersType: !Ref LoadBalancersType
@@ -526,6 +651,7 @@ Resources:
         ServicePort: !Ref ServicePort
         Certificate: !Ref Certificate
         AdminEmail: !Ref AdminEmail
+        ResourcesTagName: !Ref ResourcesTagName
         GatewaysSubnets: !Join
           - ','
           - - !GetAtt VPCStack.Outputs.PublicSubnet1ID
@@ -560,17 +686,17 @@ Resources:
         ServerAMI: !Ref ServerAMI
 Outputs:
   InternalPort:
-    Description: The internal Load Balancer should listen to this port
+    Description: The internal Load Balancer should listen to this port.
     Value: !GetAtt MainStack.Outputs.InternalPort
   ManagementName:
-    Description: The name that represents the Security Management Server
+    Description: The name that represents the Security Management Server.
     Value: !GetAtt MainStack.Outputs.ManagementName
   ConfigurationTemplateName:
-    Description: The name that represents the configuration template. Configurations required to automatically provision the Gateways in the Auto Scaling Group, such as what Security Policy to install and which Blades to enable, will be placed under this template name
+    Description: The name that represents the configuration template. Configurations required to automatically provision the Gateways in the Auto Scaling Group, such as what Security Policy to install and which Blades to enable, will be placed under this template name.
     Value: !GetAtt MainStack.Outputs.ConfigurationTemplateName
   ControllerName:
-    Description: The name that represents the controller. Configurations required to connect to your AWS environment, such as credentials and regions, will be placed under this controller name
+    Description: The name that represents the controller. Configurations required to connect to your AWS environment, such as credentials and regions, will be placed under this controller name.
     Value: !GetAtt MainStack.Outputs.ControllerName
   LBURL:
-    Description: The URL of the external Load Balancer
+    Description: The URL of the external Load Balancer.
     Value: !GetAtt MainStack.Outputs.LBURL

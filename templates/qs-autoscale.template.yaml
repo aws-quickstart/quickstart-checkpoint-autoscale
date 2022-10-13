@@ -12,6 +12,7 @@ Metadata:
           - VolumeSize
           - VolumeType
           - EnableInstanceConnect
+          - TerminationProtection
           - AllowUploadDownload
           - ProvisionTag
           - LoadBalancersType
@@ -20,6 +21,7 @@ Metadata:
           - Certificate
           - ServicePort
           - AdminEmail
+          - ResourcesTagName
       - Label:
           default: Check Point CloudGuard IaaS Security Gateways Auto Scaling Group Configuration
         Parameters:
@@ -64,6 +66,8 @@ Metadata:
         default: Volume Type
       EnableInstanceConnect:
         default: Enable AWS Instance Connect
+      TerminationProtection:
+        default: Termination Protection
       AllowUploadDownload:
         default: Allow upload & download
       ProvisionTag:
@@ -80,6 +84,8 @@ Metadata:
         default: Custom service port
       AdminEmail:
         default: Email address
+      ResourcesTagName:
+        default: Resources prefix tag
       GatewaysSubnets:
         default: Gateways subnets
       GatewayInstanceType:
@@ -126,17 +132,17 @@ Metadata:
         default: AMI ID
 Parameters:
   VPC:
-    Description: Select an existing VPC
+    Description: Select an existing VPC.
     Type: AWS::EC2::VPC::Id
     MinLength: 1
-    ConstraintDescription: You must select a VPC
+    ConstraintDescription: You must select a VPC.
   KeyName:
-    Description: The EC2 Key Pair to allow SSH access to the instances created by this stack
+    Description: The EC2 Key Pair to allow SSH access to the instances created by this stack.
     Type: AWS::EC2::KeyPair::KeyName
     MinLength: 1
-    ConstraintDescription: Must be the name of an existing EC2 KeyPair
+    ConstraintDescription: Must be the name of an existing EC2 KeyPair.
   EnableVolumeEncryption:
-    Description: Encrypt Environment instances volume with default AWS KMS key
+    Description: Encrypt Environment instances volume with default AWS KMS key.
     Type: String
     Default: true
     AllowedValues:
@@ -154,41 +160,48 @@ Parameters:
       - gp3
       - gp2
   EnableInstanceConnect:
-    Description: Enable SSH connection over AWS web console
+    Description: Enable SSH connection over AWS web console.
+    Type: String
+    Default: false
+    AllowedValues:
+      - true
+      - false
+  TerminationProtection:
+    Description: Prevents an instance from accidental termination.
     Type: String
     Default: false
     AllowedValues:
       - true
       - false
   AllowUploadDownload:
-    Description: Automatically download Blade Contracts and other important data. Improve product experience by sending data to Check Point
+    Description: Automatically download updates and share statistical data for product improvement purpose.
     Type: String
     Default: true
     AllowedValues:
       - true
       - false
   ProvisionTag:
-    Description: The tag is used by the Security Management Server to automatically provision the Security Gateways. Must be up to 12 alphanumeric characters and unique for each Quick Start deployment
+    Description: The tag is used by the Security Management Server to automatically provision the Security Gateways. Must be up to 12 alphanumeric characters and unique for each Quick Start deployment.
     Type: String
     Default: quickstart
     AllowedPattern: '^[a-zA-Z0-9-]{1,12}$'
-    ConstraintDescription: The tag must be up to 12 alphanumeric character
+    ConstraintDescription: The tag must be up to 12 alphanumeric character.
   LoadBalancersType:
-    Description: Use Network Load Balancer if you wish to preserve the source IP address and Application Load Balancer if you wish to use content based routing
+    Description: Use Network Load Balancer if you wish to preserve the source IP address and Application Load Balancer if you wish to use content based routing.
     Default: Network Load Balancer
     Type: String
     AllowedValues:
       - Network Load Balancer
       - Application Load Balancer
   ALBProtocol:
-    Description: The protocol to use on the Application Load Balancer. If Network Load Balancer was selected this section will be ignored
+    Description: The protocol to use on the Application Load Balancer. If Network Load Balancer was selected this section will be ignored.
     Type: String
     Default: HTTP
     AllowedValues:
       - HTTP
       - HTTPS
   NLBProtocol:
-    Description: The protocol to use on the Network Load Balancer. If Application Load Balancer was selected this section will be ignored
+    Description: The protocol to use on the Network Load Balancer. If Application Load Balancer was selected this section will be ignored.
     Type: String
     Default: TCP
     AllowedValues:
@@ -197,30 +210,36 @@ Parameters:
       - UDP
       - TCP_UDP
   Certificate:
-    Description: Amazon Resource Name (ARN) of an HTTPS Certificate, ignored if the selected protocol is HTTP
+    Description: Amazon Resource Name (ARN) of an HTTPS Certificate, ignored if the selected protocol is HTTP.
     Type: String
     AllowedPattern: '^(arn:[\w+=/,.@-]+:[\w+=/,.@-]+:[\w+=/,.@-]*:[0-9]+:[\w+=,.@-]+(/[\w+=,.@-]+)*)?$'
-    ConstraintDescription: 'Must be a valid Amazon Resource Name (ARN), for example: arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012'
+    ConstraintDescription: 'Must be a valid Amazon Resource Name (ARN), for example: arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012.'
   ServicePort:
-    Description: 'The external Load Balancer listens to this port. Leave this field blank to use default ports: 80 for HTTP and 443 for HTTPS'
+    Description: 'The external Load Balancer listens to this port. Leave this field blank to use default ports: 80 for HTTP and 443 for HTTPS.'
     Type: String
     AllowedPattern: '^([0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])?$'
-    ConstraintDescription: Custom service port must be a number between 0 and 65535
+    ConstraintDescription: Custom service port must be a number between 0 and 65535.
   AdminEmail:
-    Description: Notifications about scaling events will be sent to this email address (optional)
+    Description: Notifications about scaling events will be sent to this email address. (optional)
     Type: String
     Default: ''
     AllowedPattern: '^(([a-zA-Z0-9_\-\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([a-zA-Z0-9\-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?))?$'
-    ConstraintDescription: Must be a valid email address
+    ConstraintDescription: Must be a valid email address.
+  ResourcesTagName:
+    Description: The name tag of the resources. (optional)
+    Type: String
+    Default: ''
   GatewaysSubnets:
-    Description: Select at least 2 public subnets in the VPC. If you choose to deploy a Security Management Server it will be deployed in the first subnet
+    Description: Select at least 2 public subnets in the VPC. If you choose to deploy a Security Management Server it will be deployed in the first subnet.
     Type: List<AWS::EC2::Subnet::Id>
     AllowedPattern: '.+'
   GatewayInstanceType:
-    Description: The EC2 instance type for the Security Gateways
+    Description: The EC2 instance type for the Security Gateways.
     Type: String
     Default: c5.xlarge
     AllowedValues:
+      - c4.large
+      - c4.xlarge
       - c5.large
       - c5.xlarge
       - c5.2xlarge
@@ -233,19 +252,67 @@ Parameters:
       - c5n.4xlarge
       - c5n.9xlarge
       - c5n.18xlarge
+      - m5.large
+      - m5.xlarge
+      - m5.2xlarge
+      - m5.4xlarge
+      - m5.8xlarge
+      - m5.12xlarge
+      - m6i.large
+      - m6i.xlarge
+      - m6i.2xlarge
+      - m6i.4xlarge
+      - m6i.12xlarge
+      - m6i.24xlarge
+      - c6i.large
+      - c6i.xlarge
+      - c6i.2xlarge
+      - c6i.4xlarge
+      - c6i.12xlarge
+      - c6i.24xlarge
+      - r5.large
+      - r5.xlarge
+      - r5.2xlarge
+      - r5.4xlarge
+      - r5.12xlarge
+      - r5.24xlarge
+      - r5a.large
+      - r5a.xlarge
+      - r5a.2xlarge
+      - r5a.4xlarge
+      - r5a.12xlarge
+      - r5a.24xlarge
+      - r5b.large
+      - r5b.xlarge
+      - r5b.2xlarge
+      - r5b.4xlarge
+      - r5b.12xlarge
+      - r5b.24xlarge
+      - r5n.large
+      - r5n.xlarge
+      - r5n.2xlarge
+      - r5n.4xlarge
+      - r5n.12xlarge
+      - r5n.24xlarge
+      - m6a.large
+      - m6a.xlarge
+      - m6a.2xlarge
+      - m6a.4xlarge
+      - m6a.12xlarge
+      - m6a.24xlarge
     ConstraintDescription: Must be a valid EC2 instance type
   GatewaysMinSize:
-    Description: The minimal number of Security Gateways
+    Description: The minimal number of Security Gateways.
     Type: Number
     Default: 2
     MinValue: 1
   GatewaysMaxSize:
-    Description: The maximal number of Security Gateways
+    Description: The maximal number of Security Gateways.
     Type: Number
     Default: 10
     MinValue: 1
   GatewayVersion:
-    Description: The version and license to install on the Security Gateways
+    Description: The version and license to install on the Security Gateways.
     Type: String
     Default: R81.10-BYOL
     AllowedValues:
@@ -259,45 +326,100 @@ Parameters:
       - R81.10-PAYG-NGTP
       - R81.10-PAYG-NGTX
   GatewayPasswordHash:
-    Description: Admin user's password hash (use command "openssl passwd -1 PASSWORD" to get the PASSWORD's hash) (optional)
+    Description: Admin user's password hash (use command "openssl passwd -6 PASSWORD" to get the PASSWORD's hash). (optional)
     Type: String
     Default: ''
     AllowedPattern: '^[\$\./a-zA-Z0-9]*$'
     NoEcho: true
   GatewaySICKey:
-    Description: The Secure Internal Communication key creates trusted connections between Check Point components. Choose a random string consisting of at least 8 alphanumeric characters
+    Description: The Secure Internal Communication key creates trusted connections between Check Point components. Choose a random string consisting of at least 8 alphanumeric characters.
     Type: String
     AllowedPattern: '^[a-zA-Z0-9]{8,}$'
-    ConstraintDescription: Secure Internal Communication activation key should contain only alpha numeric characters and be at least 8 characters long
+    ConstraintDescription: Secure Internal Communication activation key should contain only alpha numeric characters and be at least 8 characters long.
     NoEcho: true
   CloudWatch:
-    Description: Report Check Point specific CloudWatch metrics
+    Description: Report Check Point specific CloudWatch metrics.
     Type: String
     Default: false
     AllowedValues:
       - true
       - false
   ManagementDeploy:
-    Description: Select 'false' to use an existing Security Management Server or to deploy one later and to ignore the other parameters of this section
+    Description: Select 'false' to use an existing Security Management Server or to deploy one later and to ignore the other parameters of this section.
     Type: String
     Default: true
     AllowedValues:
       - true
       - false
   ManagementInstanceType:
-    Description: The EC2 instance type of the Security Management Server
+    Description: The EC2 instance type of the Security Management Server.
     Type: String
     Default: m5.xlarge
     AllowedValues:
+      - c5.large
+      - c5.xlarge
+      - c5.2xlarge
+      - c5.4xlarge
+      - c5.9xlarge
+      - c5.18xlarge
+      - c5n.large
+      - c5n.xlarge
+      - c5n.2xlarge
+      - c5n.4xlarge
+      - c5n.9xlarge
+      - c5n.18xlarge
       - m5.large
       - m5.xlarge
       - m5.2xlarge
       - m5.4xlarge
+      - m5.8xlarge
       - m5.12xlarge
       - m5.24xlarge
+      - m6i.large
+      - m6i.xlarge
+      - m6i.2xlarge
+      - m6i.4xlarge
+      - m6i.12xlarge
+      - m6i.24xlarge
+      - c6i.large
+      - c6i.xlarge
+      - c6i.2xlarge
+      - c6i.4xlarge
+      - c6i.12xlarge
+      - c6i.24xlarge
+      - r5.large
+      - r5.xlarge
+      - r5.2xlarge
+      - r5.4xlarge
+      - r5.12xlarge
+      - r5.24xlarge
+      - r5a.large
+      - r5a.xlarge
+      - r5a.2xlarge
+      - r5a.4xlarge
+      - r5a.12xlarge
+      - r5a.24xlarge
+      - r5b.large
+      - r5b.xlarge
+      - r5b.2xlarge
+      - r5b.4xlarge
+      - r5b.12xlarge
+      - r5b.24xlarge
+      - r5n.large
+      - r5n.xlarge
+      - r5n.2xlarge
+      - r5n.4xlarge
+      - r5n.12xlarge
+      - r5n.24xlarge
+      - m6a.large
+      - m6a.xlarge
+      - m6a.2xlarge
+      - m6a.4xlarge
+      - m6a.12xlarge
+      - m6a.24xlarge
     ConstraintDescription: Must be a valid EC2 instance type
   ManagementVersion:
-    Description: The license to install on the Security Management Server
+    Description: The license to install on the Security Management Server.
     Type: String
     Default: R81.10-BYOL
     AllowedValues:
@@ -306,7 +428,7 @@ Parameters:
       - R81.10-BYOL
       - R81.10-PAYG
   ManagementPasswordHash:
-    Description: Admin user's password hash (use command "openssl passwd -1 PASSWORD" to get the PASSWORD's hash) (optional)
+    Description: Admin user's password hash (use command "openssl passwd -6 PASSWORD" to get the PASSWORD's hash). (optional)
     Type: String
     Default: ''
     AllowedPattern: '^[\$\./a-zA-Z0-9]*$'
@@ -326,38 +448,38 @@ Parameters:
     Type: String
     Default: ''
   GatewaysPolicy:
-    Description: The name of the Security Policy package to be installed on the gateways in the Security Gateways Auto Scaling group
+    Description: The name of the Security Policy package to be installed on the gateways in the Security Gateways Auto Scaling group.
     Type: String
     Default: Standard
     MinLength: 1
   GatewaysBlades:
-    Description: Turn on the Intrusion Prevention System, Application Control, Anti-Virus and Anti-Bot Blades (additional Blades can be manually turned on later)
+    Description: Turn on the Intrusion Prevention System, Application Control, Anti-Virus and Anti-Bot Blades (additional Blades can be manually turned on later).
     Type: String
     Default: true
     AllowedValues:
       - true
       - false
   AdminCIDR:
-    Description: Allow web, SSH, and graphical clients only from this network to communicate with the Security Management Server
+    Description: Allow web, SSH, and graphical clients only from this network to communicate with the Security Management Server.
     Type: String
-    AllowedPattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}/([0-9]|[1-2][0-9]|3[0-2])$'
+    AllowedPattern: '^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$'
   GatewaysAddresses:
-    Description: Allow gateways only from this network to communicate with the Security Management Server
+    Description: Allow gateways only from this network to communicate with the Security Management Server.
     Type: String
-    AllowedPattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}/([0-9]|[1-2][0-9]|3[0-2])$'
+    AllowedPattern: '^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$'
   ServersDeploy:
-    Description: Select 'true' to deploy web servers and an internal Application Load Balancer. If you select 'false' the other parameters of this section will be ignored
+    Description: Select 'true' to deploy web servers and an internal Application Load Balancer. If you select 'false' the other parameters of this section will be ignored.
     Type: String
     Default: false
     AllowedValues:
       - true
       - false
   ServersSubnets:
-    Description: Provide at least 2 private subnet IDs in the chosen VPC, separated by commas (e.g. subnet-0d72417c,subnet-1f61306f,subnet-1061d06f)
+    Description: Provide at least 2 private subnet IDs in the chosen VPC, separated by commas (e.g. subnet-0d72417c,subnet-1f61306f,subnet-1061d06f).
     Type: List<AWS::EC2::Subnet::Id>
     AllowedPattern: '.+'
   ServerInstanceType:
-    Description: The EC2 instance type for the web servers
+    Description: The EC2 instance type for the web servers.
     Type: String
     Default: t3.micro
     AllowedValues:
@@ -368,12 +490,12 @@ Parameters:
       - t3.large
       - t3.xlarge
       - t3.2xlarge
-    ConstraintDescription: Must be a valid EC2 instance type
+    ConstraintDescription: Must be a valid EC2 instance type.
   ServerAMI:
-    Description: The Amazon Machine Image ID of a preconfigured web server (e.g. ami-0dc7dc63)
+    Description: The Amazon Machine Image ID of a preconfigured web server (e.g. ami-0dc7dc63).
     Type: String
     AllowedPattern: '^(ami-(([0-9a-f]{8})|([0-9a-f]{17})))?$'
-    ConstraintDescription: Amazon Machine Image ID must be in the form ami-xxxxxxxx or ami-xxxxxxxxxxxxxxxxx
+    ConstraintDescription: Amazon Machine Image ID must be in the form ami-xxxxxxxx or ami-xxxxxxxxxxxxxxxxx.
 Conditions:
   VolumeEncryption: !Equals [!Ref EnableVolumeEncryption, true]
   DeployManagement: !Equals [!Ref ManagementDeploy, true]
@@ -384,18 +506,26 @@ Conditions:
     - !And [!Condition ALB, !Equals [ALBProtocol, HTTPS]]
     - !And [!Condition NLB, !Equals [NLBProtocol, TLS]]
   ProvidedPort: !Not [!Equals [!Ref ServicePort, '']]
+  ProvidedResourcesTag: !Not [!Equals [!Ref ResourcesTagName, '']]
 Resources:
   ExternalALBSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Condition: ALB
     Properties:
-      GroupDescription: External ALB security group
+      GroupDescription: External ALB security group.
       VpcId: !Ref VPC
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: !If [ProvidedPort, !Ref ServicePort, !If [EncryptedProtocol, 443, 80]]
           ToPort: !If [ProvidedPort, !Ref ServicePort, !If [EncryptedProtocol, 443, 80]]
           CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value:
+            !Join
+            - _
+            - - !If [ ProvidedResourcesTag, !Ref ResourcesTagName, !Ref 'AWS::StackName' ]
+              - Exter_ALB_SecurityGroup
   ExternalLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
@@ -404,12 +534,29 @@ Resources:
       Subnets: !Ref GatewaysSubnets
       SecurityGroups:
         - !If [ALB, !GetAtt ExternalALBSecurityGroup.GroupId, !Ref 'AWS::NoValue']
+      Tags:
+        - Key: Name
+          Value:
+            !Join
+            - _
+            - - !If [ ProvidedResourcesTag, !Ref ResourcesTagName, !Ref 'AWS::StackName' ]
+              - Exter
+              - !If [ALB, "ALB", "NLB"]
   ExternalLBTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
       VpcId: !Ref VPC
       Protocol: !If [ALB, !Ref ALBProtocol, !Ref NLBProtocol]
       Port: !If [EncryptedProtocol, 9443, 9080]
+      Tags:
+        - Key: Name
+          Value:
+            !Join
+            - _
+            - - !If [ ProvidedResourcesTag, !Ref ResourcesTagName, !Ref 'AWS::StackName' ]
+              - Exter
+              - !If [ALB, "ALB", "NLB"]
+              - TargetGroup
   ExternalLBListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
     DependsOn: [ExternalLoadBalancer, ExternalLBTargetGroup]
@@ -427,7 +574,7 @@ Resources:
       Parameters:
         VPC: !Ref VPC
         GatewaysSubnets: !Join [',', !Ref GatewaysSubnets]
-        GatewayName: !Sub '${ProvisionTag}-security-gateway'
+        GatewayName: !Sub '${ResourcesTagName}-security-gateway'
         GatewayInstanceType: !Ref GatewayInstanceType
         KeyName: !Ref KeyName
         EnableVolumeEncryption: !Ref EnableVolumeEncryption
@@ -454,8 +601,8 @@ Resources:
             - 'cv_json_path_tmp="/etc/cloud-version-tmp.json"'
             - 'if test -f ${cv_json_path}; then cat ${cv_json_path} | jq ''.template_name = "''"${template}"''"'' > ${cv_json_path_tmp}; mv ${cv_json_path_tmp} ${cv_json_path}; fi'
             - 'echo -e "\nFinished Bootstrap script\n"'
-        ManagementServer: !If [DeployManagement, !Sub '${ProvisionTag}-management', !Ref 'AWS::NoValue']
-        ConfigurationTemplate: !If [DeployManagement, !Sub '${ProvisionTag}-template', !Ref 'AWS::NoValue']
+        ManagementServer: !Sub '${ProvisionTag}-management'
+        ConfigurationTemplate: !Sub '${ProvisionTag}-template'
   ManagementStack:
     Type: AWS::CloudFormation::Stack
     Condition: DeployManagement
@@ -464,13 +611,14 @@ Resources:
       Parameters:
         VPC: !Ref VPC
         ManagementSubnet: !Select [0, !Ref GatewaysSubnets]
-        ManagementName: !Sub '${ProvisionTag}-management'
+        ManagementName: !Sub '${ResourcesTagName}-management'
         ManagementInstanceType: !Ref ManagementInstanceType
         VolumeSize: !Ref VolumeSize
         VolumeType: !Ref VolumeType
         KeyName: !Ref KeyName
         VolumeEncryption: !If [VolumeEncryption, alias/aws/ebs, '']
         EnableInstanceConnect: !Ref EnableInstanceConnect
+        TerminationProtection: !Ref TerminationProtection
         ManagementVersion: !Ref ManagementVersion
         ManagementPasswordHash: !Ref ManagementPasswordHash
         ManagementPermissions: !Ref ManagementPermissions
@@ -501,7 +649,7 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Condition: DeployServers
     Properties:
-      GroupDescription: Internal security group
+      GroupDescription: Internal security group.
       VpcId: !Ref VPC
       SecurityGroupIngress:
         - IpProtocol: tcp
@@ -512,6 +660,13 @@ Resources:
           FromPort: -1
           ToPort: -1
           SourceSecurityGroupId: !GetAtt SecurityGatewaysStack.Outputs.SecurityGroup
+      Tags:
+        - Key: Name
+          Value:
+            !Join
+            - _
+            - - !If [ ProvidedResourcesTag, !Ref ResourcesTagName, !Ref 'AWS::StackName' ]
+              - Inter_SecurityGroup
   InternalLBTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Condition: DeployServers
@@ -519,6 +674,15 @@ Resources:
       VpcId: !Ref VPC
       Protocol: !If [ALB, !Ref ALBProtocol, !Ref NLBProtocol]
       Port: !If [EncryptedProtocol, 443, 80]
+      Tags:
+        - Key: Name
+          Value:
+            !Join
+            - _
+            - - !If [ ProvidedResourcesTag, !Ref ResourcesTagName, !Ref 'AWS::StackName' ]
+              - Inter
+              - !If [ALB, "ALB", "NLB"]
+              - TargetGroup
   InternalLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Condition: DeployServers
@@ -533,6 +697,13 @@ Resources:
           Value: !Sub '${ProvisionTag}-management'
         - Key: x-chkp-template
           Value: !Sub '${ProvisionTag}-template'
+        - key: Name
+          Value:
+            !Join
+            - _
+            - - !If [ ProvidedResourcesTag, !Ref ResourcesTagName, !Ref 'AWS::StackName' ]
+              - Inter
+              - !If [ ALB, "ALB", "NLB" ]
   InternalLBListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Condition: DeployServers
@@ -556,7 +727,7 @@ Resources:
         VPC: !Ref VPC
         ServersSubnets: !Join [',', !Ref ServersSubnets]
         ServerAMI: !Ref ServerAMI
-        ServerName: !Sub '${ProvisionTag}-server'
+        ServerName: !Sub '${ResourcesTagName}-server'
         ServerInstanceType: !Ref ServerInstanceType
         KeyName: !Ref KeyName
         ServersMinSize: !Ref GatewaysMinSize
@@ -566,17 +737,17 @@ Resources:
         SourceSecurityGroup: !If [NLB, !Ref 'AWS::NoValue', !Ref InternalSecurityGroup]
 Outputs:
   InternalPort:
-    Description: The internal Load Balancer should listen to this port
+    Description: The internal Load Balancer should listen to this port.
     Value: !If [EncryptedProtocol, 443, 80]
   ManagementName:
-    Description: The name that represents the Security Management Server
+    Description: The name that represents the Security Management Server.
     Value: !Sub '${ProvisionTag}-management'
   ConfigurationTemplateName:
-    Description: The name that represents the configuration template. Configurations required to automatically provision the Gateways in the Auto Scaling Group, such as what Security Policy to install and which Blades to enable, will be placed under this template name
+    Description: The name that represents the configuration template. Configurations required to automatically provision the Gateways in the Auto Scaling Group, such as what Security Policy to install and which Blades to enable, will be placed under this template name.
     Value: !Sub '${ProvisionTag}-template'
   ControllerName:
-    Description: The name that represents the controller. Configurations required to connect to your AWS environment, such as credentials and regions, will be placed under this controller name
+    Description: The name that represents the controller. Configurations required to connect to your AWS environment, such as credentials and regions, will be placed under this controller name.
     Value: !Sub '${ProvisionTag}-controller'
   LBURL:
-    Description: The URL of the external Load Balancer
+    Description: The URL of the external Load Balancer.
     Value: !GetAtt ExternalLoadBalancer.DNSName
