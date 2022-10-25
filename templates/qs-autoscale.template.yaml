@@ -697,7 +697,7 @@ Resources:
           Value: !Sub '${ProvisionTag}-management'
         - Key: x-chkp-template
           Value: !Sub '${ProvisionTag}-template'
-        - key: Name
+        - Key: Name
           Value:
             !Join
             - _
