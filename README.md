@@ -17,8 +17,8 @@ You can also use the AWS CloudFormation templates as a starting point for your o
 
 ![Quick Start architecture for Check Point Cloud Guard Auto Scaling on AWS](https://sc1.checkpoint.com/documents/IaaS/WebAdminGuides/EN/CloudGuard_Network_for_AWS_AutoScaling_DeploymentGuide/Resources/Images/Images-for-AWS-AutoScale-DG/Check_Point_CloudGuard_Network_for_AWS-25.8.21.png)
 
-For architectural details, best practices, step-by-step instructions, and customization options, see the 
-[deployment guide](https://sc1.checkpoint.com/documents/IaaS/WebAdminGuides/EN/CloudGuard_Network_for_AWS_AutoScaling_DeploymentGuide/Topics-AWS-AutoScale-DG/Check-Point-CloudGuard-Network-for-AWS.htm).
+For architectural details and step-by-step instructions, refer to the [deployment guide](https://fwd.aws/EWnJb?).
 
 To post feedback, submit feature ideas, or report bugs, use the **Issues** section of this GitHub repo.
-If you'd like to submit code for this Quick Start, please review the [AWS Quick Start Contributor's Kit](https://aws-quickstart.github.io/). 
+
+To submit code for this Partner Solution, refer to the [AWS Partner Solution Contributor's Guide](https://aws-quickstart.github.io/).
