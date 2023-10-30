@@ -553,6 +553,8 @@ Resources:
       VpcId: !Ref VPC
       Protocol: !If [ALB, !Ref ALBProtocol, !Ref NLBProtocol]
       Port: !If [EncryptedProtocol, 9443, 9080]
+      HealthCheckPort: !If [ NLB, 8117, !Ref 'AWS::NoValue' ]
+      HealthCheckProtocol: !If [ NLB, TCP, !Ref 'AWS::NoValue' ]
       Tags:
         - Key: Name
           Value:
